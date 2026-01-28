@@ -7,56 +7,20 @@ const start = async () => {
     await prisma.$connect();
 
     app.listen(env.PORT, () => {
+      const base = `http://localhost:${env.PORT}`;
       console.error(`
-  ╔══════════════════════════════════════════════════╗
-  ║           Paper's API — ${env.NODE_ENV}              ║
-  ╠══════════════════════════════════════════════════╣
-  ║                                                  ║
-  ║  Server:    http://localhost:${env.PORT}              ║
-  ║  Health:    http://localhost:${env.PORT}/api/v1/health ║
-  ║  Database:  PostgreSQL connected                 ║
-  ║  Redis:     ${env.REDIS_URL}            ║
-  ║                                                  ║
-  ║  Routes:                                         ║
-  ║  --- Auth ---                                    ║
-  ║  POST   /api/v1/auth/register                    ║
-  ║  POST   /api/v1/auth/login                       ║
-  ║  POST   /api/v1/auth/google                      ║
-  ║  POST   /api/v1/auth/refresh                     ║
-  ║  POST   /api/v1/auth/forgot-password             ║
-  ║  POST   /api/v1/auth/reset-password              ║
-  ║  POST   /api/v1/auth/verify-email                ║
-  ║  GET    /api/v1/auth/me                          ║
-  ║  POST   /api/v1/auth/logout                      ║
-  ║  --- Users ---                                   ║
-  ║  GET    /api/v1/users/:id                        ║
-  ║  PUT    /api/v1/users/:id                        ║
-  ║  DELETE /api/v1/users/:id                        ║
-  ║  --- Authors ---                                 ║
-  ║  POST   /api/v1/authors/apply                    ║
-  ║  GET    /api/v1/authors/me                       ║
-  ║  PUT    /api/v1/authors/me                       ║
-  ║  GET    /api/v1/authors                          ║
-  ║  GET    /api/v1/authors/:id                      ║
-  ║  --- Categories ---                              ║
-  ║  GET    /api/v1/categories                       ║
-  ║  GET    /api/v1/categories/:id                   ║
-  ║  GET    /api/v1/categories/:id/books             ║
-  ║  --- Books ---                                   ║
-  ║  GET    /api/v1/books                            ║
-  ║  GET    /api/v1/books/search                     ║
-  ║  GET    /api/v1/books/me                         ║
-  ║  POST   /api/v1/books                            ║
-  ║  GET    /api/v1/books/:id                        ║
-  ║  GET    /api/v1/books/:id/preview                ║
-  ║  PUT    /api/v1/books/:id                        ║
-  ║  DELETE /api/v1/books/:id                        ║
-  ║  POST   /api/v1/books/:id/submit                 ║
-  ║  --- Upload ---                                  ║
-  ║  POST   /api/v1/upload/cover                     ║
-  ║  POST   /api/v1/upload/book                      ║
-  ║                                                  ║
-  ╚══════════════════════════════════════════════════╝
+  ╔══════════════════════════════════════════════════════╗
+  ║            Paper's API — ${env.NODE_ENV}                  ║
+  ╠══════════════════════════════════════════════════════╣
+  ║                                                      ║
+  ║  Server:     ${base}                          ║
+  ║  Health:     ${base}/api/v1/health             ║
+  ║  Swagger:    ${base}/api/v1/docs               ║
+  ║  Swagger JSON: ${base}/api/v1/docs.json        ║
+  ║  Database:   PostgreSQL connected                    ║
+  ║  Redis:      ${env.REDIS_URL}                        ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
       `);
     });
   } catch (error) {
