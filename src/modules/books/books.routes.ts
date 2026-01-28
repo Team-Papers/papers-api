@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { BooksController } from './books.controller';
+import { LibraryController } from '../library/library.controller';
 import { authenticate } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
 import { createBookDto, updateBookDto } from './books.dto';
 
 const router = Router();
 const controller = new BooksController();
+const libraryController = new LibraryController();
 
 // Public routes
 router.get('/', (req, res, next) => {
@@ -45,6 +47,10 @@ router.delete('/:id', authenticate, (req, res, next) => {
 
 router.post('/:id/submit', authenticate, (req, res, next) => {
   controller.submit(req, res).catch(next);
+});
+
+router.get('/:id/download', authenticate, (req, res, next) => {
+  libraryController.getDownloadUrl(req, res).catch(next);
 });
 
 export default router;

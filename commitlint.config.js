@@ -16,6 +16,8 @@ module.exports = {
         'admin',
         'notifications',
         'upload',
+        'bookmarks',
+        'categories',
         'middleware',
         'config',
         'prisma',
