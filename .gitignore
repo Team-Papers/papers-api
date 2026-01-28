@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Firebase
+firebase-service-account.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# Prisma
+src/prisma/migrations/**/migration_lock.toml
+
+# Docker
+docker-compose.override.yml
+
+/src/generated/prisma

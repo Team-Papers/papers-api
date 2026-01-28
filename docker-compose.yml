@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: papers-postgres
+    environment:
+      POSTGRES_USER: papers
+      POSTGRES_PASSWORD: papers
+      POSTGRES_DB: papers_db
+    ports:
+      - '5433:5432'
+    volumes:
+      - papers_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U papers -d papers_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: papers-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - papers_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  papers_postgres_data:
+  papers_redis_data:

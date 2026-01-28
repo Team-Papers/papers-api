@@ -1,0 +1,91 @@
+{
+  "name": "papers-api",
+  "version": "1.0.0",
+  "description": "Paper's — Backend API (Express + TypeScript)",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:seed": "tsx src/prisma/seed.ts",
+    "prisma:studio": "prisma studio",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Team-Papers/papers-api.git"
+  },
+  "keywords": [],
+  "author": "Team Papers",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Team-Papers/papers-api/issues"
+  },
+  "homepage": "https://github.com/Team-Papers/papers-api#readme",
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.6.0",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.9.2",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "pg": "^8.17.2",
+    "slugify": "^1.6.6",
+    "uuid": "^13.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@eslint/js": "^9.39.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.1.0",
+    "@types/pg": "^8.16.0",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "prisma": "^7.3.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
