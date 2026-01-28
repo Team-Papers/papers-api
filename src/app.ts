@@ -20,6 +20,7 @@ import uploadRoutes from './modules/upload/upload.routes';
 import purchasesRoutes from './modules/purchases/purchases.routes';
 import libraryRoutes from './modules/library/library.routes';
 import reviewsRoutes from './modules/reviews/reviews.routes';
+import adminRoutes from './modules/admin/admin.routes';
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/purchases', purchasesRoutes);
 app.use('/api/v1/library', libraryRoutes);
 app.use('/api/v1/reviews', reviewsRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // Error handling
 app.use(errorHandler);

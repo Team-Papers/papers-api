@@ -86,4 +86,27 @@
  *     responses:
  *       200: { description: Profil auteur public }
  *       404: { description: Auteur non trouvé }
+ *
+ * /authors/me/stats:
+ *   get:
+ *     tags: [Authors]
+ *     summary: Statistiques auteur (ventes, revenus, notes)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Stats auteur }
+ *
+ * /authors/me/earnings:
+ *   get:
+ *     tags: [Authors]
+ *     summary: Solde + historique des transactions
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200: { description: Solde et transactions paginées }
  */

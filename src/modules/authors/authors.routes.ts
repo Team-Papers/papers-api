@@ -19,6 +19,14 @@ router.put('/me', authenticate, validate(updateAuthorDto), (req, res, next) => {
   controller.updateMyProfile(req, res).catch(next);
 });
 
+router.get('/me/stats', authenticate, (req, res, next) => {
+  controller.getMyStats(req, res).catch(next);
+});
+
+router.get('/me/earnings', authenticate, (req, res, next) => {
+  controller.getMyEarnings(req, res).catch(next);
+});
+
 router.get('/', (req, res, next) => {
   controller.listAuthors(req, res).catch(next);
 });

@@ -61,4 +61,20 @@ export class AuthorsService {
   async listAuthors(query: PaginationQuery) {
     return this.authorsRepository.findAll(query);
   }
+
+  async getMyStats(userId: string) {
+    const profile = await this.authorsRepository.findByUserId(userId);
+    if (!profile) {
+      throw new NotFoundError('Author profile');
+    }
+    return this.authorsRepository.getStats(profile.id);
+  }
+
+  async getMyEarnings(userId: string, query: PaginationQuery) {
+    const profile = await this.authorsRepository.findByUserId(userId);
+    if (!profile) {
+      throw new NotFoundError('Author profile');
+    }
+    return this.authorsRepository.getEarnings(profile.id, query);
+  }
 }
