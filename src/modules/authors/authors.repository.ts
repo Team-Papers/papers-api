@@ -109,4 +109,53 @@ export class AuthorsRepository {
       },
     });
   }
+
+  async getStats(authorId: string) {
+    const [totalBooks, totalSales, totalRevenue, avgRating] = await Promise.all([
+      prisma.book.count({ where: { authorId } }),
+      prisma.purchase.count({
+        where: { book: { authorId }, status: 'COMPLETED' },
+      }),
+      prisma.authorTransaction.aggregate({
+        where: { authorId, type: 'SALE', status: 'COMPLETED' },
+        _sum: { netAmount: true },
+      }),
+      prisma.review.aggregate({
+        where: { book: { authorId }, status: 'VISIBLE' },
+        _avg: { rating: true },
+        _count: { rating: true },
+      }),
+    ]);
+
+    return {
+      totalBooks,
+      totalSales,
+      totalRevenue: totalRevenue._sum.netAmount ?? 0,
+      averageRating: avgRating._avg.rating ?? 0,
+      totalRatings: avgRating._count.rating,
+    };
+  }
+
+  async getEarnings(authorId: string, query: PaginationQuery) {
+    const { skip, take } = getPaginationParams(query);
+
+    const [profile, transactions, total] = await Promise.all([
+      prisma.authorProfile.findUnique({
+        where: { id: authorId },
+        select: { balance: true },
+      }),
+      prisma.authorTransaction.findMany({
+        where: { authorId },
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          book: { select: { id: true, title: true } },
+        },
+      }),
+      prisma.authorTransaction.count({ where: { authorId } }),
+    ]);
+
+    return { balance: profile?.balance ?? 0, transactions, total };
+  }
 }

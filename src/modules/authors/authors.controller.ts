@@ -31,4 +31,27 @@ export class AuthorsController {
     const { authors, total } = await authorsService.listAuthors(query);
     sendPaginated(res, authors, { page: query.page, limit: query.limit, total });
   }
+
+  async getMyStats(req: Request, res: Response) {
+    const stats = await authorsService.getMyStats(req.user!.userId);
+    sendSuccess(res, stats);
+  }
+
+  async getMyEarnings(req: Request, res: Response) {
+    const query = paginationSchema.parse(req.query);
+    const { balance, transactions, total } = await authorsService.getMyEarnings(
+      req.user!.userId,
+      query,
+    );
+    sendSuccess(res, {
+      balance,
+      transactions,
+      pagination: {
+        page: query.page,
+        limit: query.limit,
+        total,
+        totalPages: Math.ceil(total / query.limit),
+      },
+    });
+  }
 }
