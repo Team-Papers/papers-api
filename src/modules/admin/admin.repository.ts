@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import type { UserStatus, AuthorStatus } from '../../generated/prisma/enums';
+import type { UserStatus, AuthorStatus, Role } from '../../generated/prisma/enums';
 import type {
   AdminUsersQueryDto,
   AdminAuthorsQueryDto,
@@ -100,6 +100,14 @@ export class AdminRepository {
       where: { id },
       data: { status },
       select: { id: true, email: true, status: true },
+    });
+  }
+
+  async updateUserRole(id: string, role: Role) {
+    return prisma.user.update({
+      where: { id },
+      data: { role },
+      select: { id: true, email: true, role: true, status: true },
     });
   }
 

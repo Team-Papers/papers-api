@@ -51,6 +51,22 @@ export class AdminService {
     return this.adminRepository.updateUserStatus(id, 'ACTIVE');
   }
 
+  async promoteUser(id: string) {
+    const user = await this.adminRepository.findUserById(id);
+    if (!user) throw new NotFoundError('User');
+    if (user.role === 'ADMIN') throw new BadRequestError('User is already an admin');
+    if (user.status !== 'ACTIVE') throw new BadRequestError('Only active users can be promoted');
+    return this.adminRepository.updateUserRole(id, 'ADMIN');
+  }
+
+  async demoteUser(id: string, currentAdminId: string) {
+    const user = await this.adminRepository.findUserById(id);
+    if (!user) throw new NotFoundError('User');
+    if (user.role !== 'ADMIN') throw new BadRequestError('User is not an admin');
+    if (user.id === currentAdminId) throw new BadRequestError('Cannot demote yourself');
+    return this.adminRepository.updateUserRole(id, 'READER');
+  }
+
   // Authors
   async getAuthors(query: AdminAuthorsQueryDto) {
     return this.adminRepository.findAuthors(query);

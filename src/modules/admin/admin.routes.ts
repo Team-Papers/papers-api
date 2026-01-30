@@ -36,6 +36,14 @@ router.put('/users/:id/activate', (req, res, next) => {
   controller.activateUser(req, res).catch(next);
 });
 
+router.put('/users/:id/promote', (req, res, next) => {
+  controller.promoteUser(req, res).catch(next);
+});
+
+router.put('/users/:id/demote', (req, res, next) => {
+  controller.demoteUser(req, res).catch(next);
+});
+
 // Authors
 router.get('/authors', (req, res, next) => {
   controller.getAuthors(req, res).catch(next);

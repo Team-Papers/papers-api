@@ -44,6 +44,16 @@ export class AdminController {
     sendSuccess(res, user);
   }
 
+  async promoteUser(req: Request, res: Response) {
+    const user = await adminService.promoteUser(req.params.id as string);
+    sendSuccess(res, user);
+  }
+
+  async demoteUser(req: Request, res: Response) {
+    const user = await adminService.demoteUser(req.params.id as string, req.user!.userId);
+    sendSuccess(res, user);
+  }
+
   // Authors
   async getAuthors(req: Request, res: Response) {
     const query = adminAuthorsQueryDto.parse(req.query);
