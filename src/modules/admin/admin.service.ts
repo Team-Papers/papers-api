@@ -1,4 +1,6 @@
+import bcrypt from 'bcryptjs';
 import { AdminRepository } from './admin.repository';
+import { AuthRepository } from '../auth/auth.repository';
 import { NotFoundError, BadRequestError } from '../../shared/errors/app-error';
 import type {
   AdminUsersQueryDto,
@@ -7,17 +9,34 @@ import type {
   AdminTransactionsQueryDto,
   CreateCategoryDto,
   UpdateCategoryDto,
+  CreateAdminDto,
 } from './admin.dto';
 
 export class AdminService {
   private adminRepository: AdminRepository;
+  private authRepository: AuthRepository;
 
   constructor() {
     this.adminRepository = new AdminRepository();
+    this.authRepository = new AuthRepository();
   }
 
   async getDashboard() {
     return this.adminRepository.getDashboardStats();
+  }
+
+  async createAdmin(data: CreateAdminDto) {
+    const existing = await this.authRepository.findUserByEmail(data.email);
+    if (existing) throw new BadRequestError('Email already in use');
+    const passwordHash = await bcrypt.hash(data.password, 12);
+    return this.authRepository.createUser({
+      email: data.email,
+      passwordHash,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      role: 'ADMIN',
+      emailVerified: true,
+    });
   }
 
   // Users

@@ -17,6 +17,11 @@ export class AdminController {
     sendSuccess(res, stats);
   }
 
+  async createAdmin(req: Request, res: Response) {
+    const user = await adminService.createAdmin(req.body);
+    sendSuccess(res, user, 201);
+  }
+
   // Users
   async getUsers(req: Request, res: Response) {
     const query = adminUsersQueryDto.parse(req.query);

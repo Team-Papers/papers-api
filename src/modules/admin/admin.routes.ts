@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AdminController } from './admin.controller';
 import { authenticate, authorize } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
-import { rejectBookDto, createCategoryDto, updateCategoryDto } from './admin.dto';
+import { rejectBookDto, createCategoryDto, updateCategoryDto, createAdminDto } from './admin.dto';
 
 const router = Router();
 const controller = new AdminController();
@@ -34,6 +34,10 @@ router.put('/users/:id/ban', (req, res, next) => {
 
 router.put('/users/:id/activate', (req, res, next) => {
   controller.activateUser(req, res).catch(next);
+});
+
+router.post('/users/create-admin', validate(createAdminDto), (req, res, next) => {
+  controller.createAdmin(req, res).catch(next);
 });
 
 router.put('/users/:id/promote', (req, res, next) => {

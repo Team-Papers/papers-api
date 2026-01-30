@@ -55,5 +55,13 @@ export type AdminAuthorsQueryDto = z.infer<typeof adminAuthorsQueryDto>;
 export type AdminBooksQueryDto = z.infer<typeof adminBooksQueryDto>;
 export type AdminTransactionsQueryDto = z.infer<typeof adminTransactionsQueryDto>;
 export type RejectBookDto = z.infer<typeof rejectBookDto>;
+export const createAdminDto = z.object({
+  email: z.email(),
+  password: z.string().min(8),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+});
+
 export type CreateCategoryDto = z.infer<typeof createCategoryDto>;
 export type UpdateCategoryDto = z.infer<typeof updateCategoryDto>;
+export type CreateAdminDto = z.infer<typeof createAdminDto>;
