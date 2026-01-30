@@ -2,7 +2,7 @@ name: Deploy — Backend API
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
             cd /home/softengine/papers-api
-            git pull origin develop
+            git pull origin main
             docker compose -f docker-compose.prod.yml build api
             docker compose -f docker-compose.prod.yml up -d api
             sleep 10
