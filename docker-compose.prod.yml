@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: papers-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: papers
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-papers_prod_2026}
+      POSTGRES_DB: papers_db
+    ports:
+      - '5434:5432'
+    volumes:
+      - papers_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U papers -d papers_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: papers-redis
+    restart: unless-stopped
+    ports:
+      - '6380:6379'
+    volumes:
+      - papers_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: papers-api
+    restart: unless-stopped
+    ports:
+      - '8050:8000'
+    env_file:
+      - .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8000/api/v1/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  papers_postgres_data:
+  papers_redis_data:
