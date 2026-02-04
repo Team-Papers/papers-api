@@ -7,11 +7,12 @@ import prisma from '../../config/database';
 
 export class FilesController {
   /**
-   * Download a book file using a signed token
-   * GET /api/v1/files/download?token=xxx
+   * Download or view a book file using a signed token
+   * GET /api/v1/files/download?token=xxx&inline=true
+   * Use inline=true for PDF preview in browser
    */
   async downloadBook(req: Request, res: Response) {
-    const { token } = req.query;
+    const { token, inline } = req.query;
 
     if (!token || typeof token !== 'string') {
       throw new BadRequestError('Download token is required');
@@ -48,8 +49,9 @@ export class FilesController {
     const ext = path.extname(payload.fileName);
     const downloadName = `${safeTitle}${ext}`;
 
-    // Set headers for download
-    res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+    // Set headers - use inline for preview or attachment for download
+    const disposition = inline === 'true' ? 'inline' : `attachment; filename="${downloadName}"`;
+    res.setHeader('Content-Disposition', disposition);
     res.setHeader('Content-Type', this.getMimeType(ext));
     res.setHeader('Cache-Control', 'private, no-cache');
 
@@ -57,8 +59,10 @@ export class FilesController {
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
 
-    // Log the download
-    console.log(`📥 Download: ${payload.fileName} by user ${payload.userId}`);
+    // Log the access
+    console.log(
+      `📥 ${inline === 'true' ? 'Preview' : 'Download'}: ${payload.fileName} by user ${payload.userId}`,
+    );
   }
 
   /**
