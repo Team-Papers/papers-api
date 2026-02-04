@@ -15,10 +15,10 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRATION: z.string().default('15m'),
   JWT_REFRESH_EXPIRATION: z.string().default('7d'),
 
-  // Firebase (kept for Google Auth)
-  FIREBASE_PROJECT_ID: z.string(),
-  FIREBASE_CLIENT_EMAIL: z.string(),
-  FIREBASE_PRIVATE_KEY: z.string(),
+  // Firebase (optional - only needed for Google Auth)
+  FIREBASE_PROJECT_ID: z.string().optional(),
+  FIREBASE_CLIENT_EMAIL: z.string().optional(),
+  FIREBASE_PRIVATE_KEY: z.string().optional(),
   FIREBASE_STORAGE_BUCKET: z.string().optional(),
 
   // Local Storage Configuration

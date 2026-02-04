@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { env } from '../../config/env';
-import { firebaseAuth } from '../../config/firebase';
+import { firebaseAuth, isFirebaseConfigured } from '../../config/firebase';
 import redis from '../../config/redis';
 import { AuthRepository } from './auth.repository';
 import { JwtPayload } from '../../shared/middleware/auth.middleware';
@@ -95,6 +95,10 @@ export class AuthService {
   }
 
   async googleAuth(data: GoogleAuthDto) {
+    if (!isFirebaseConfigured || !firebaseAuth) {
+      throw new BadRequestError('Google authentication is not configured');
+    }
+
     const decodedToken = await firebaseAuth.verifyIdToken(data.idToken);
     const { uid, email, name, picture } = decodedToken;
 
@@ -157,11 +161,7 @@ export class AuthService {
     }
 
     await this.authRepository.deleteRefreshToken(refreshToken);
-    const tokens = await this.generateTokens(
-      stored.user.id,
-      stored.user.email,
-      stored.user.role,
-    );
+    const tokens = await this.generateTokens(stored.user.id, stored.user.email, stored.user.role);
 
     return tokens;
   }
