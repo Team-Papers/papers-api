@@ -26,6 +26,11 @@ export class PurchasesRepository {
             coverUrl: true,
             price: true,
             authorId: true,
+            author: {
+              select: {
+                userId: true,
+              },
+            },
           },
         },
       },

@@ -3,6 +3,7 @@ import { AdminRepository } from './admin.repository';
 import { AuthRepository } from '../auth/auth.repository';
 import { NotFoundError, BadRequestError } from '../../shared/errors/app-error';
 import { storageService } from '../../shared/services/storage.service';
+import { notificationsService } from '../notifications/notifications.service';
 import type {
   AdminUsersQueryDto,
   AdminAuthorsQueryDto,
@@ -101,11 +102,17 @@ export class AdminService {
   }
 
   async approveAuthor(id: string) {
-    return this.adminRepository.updateAuthorStatus(id, 'APPROVED');
+    const author = await this.adminRepository.updateAuthorStatus(id, 'APPROVED');
+    // Send notification to the author
+    await notificationsService.notifyAuthorApproved(author.user.id);
+    return author;
   }
 
-  async rejectAuthor(id: string) {
-    return this.adminRepository.updateAuthorStatus(id, 'REJECTED');
+  async rejectAuthor(id: string, reason?: string) {
+    const author = await this.adminRepository.updateAuthorStatus(id, 'REJECTED');
+    // Send notification to the author
+    await notificationsService.notifyAuthorRejected(author.user.id, reason);
+    return author;
   }
 
   // Books
@@ -120,11 +127,29 @@ export class AdminService {
   }
 
   async approveBook(id: string) {
-    return this.adminRepository.updateBookStatus(id, 'PUBLISHED');
+    // Get book details first for notification
+    const book = await this.adminRepository.findBookById(id);
+    if (!book) throw new NotFoundError('Book');
+
+    const result = await this.adminRepository.updateBookStatus(id, 'PUBLISHED');
+
+    // Send notification to the author
+    await notificationsService.notifyBookApproved(book.author.user.id, book.title, book.id);
+
+    return result;
   }
 
   async rejectBook(id: string, reason: string) {
-    return this.adminRepository.updateBookStatus(id, 'REJECTED', reason);
+    // Get book details first for notification
+    const book = await this.adminRepository.findBookById(id);
+    if (!book) throw new NotFoundError('Book');
+
+    const result = await this.adminRepository.updateBookStatus(id, 'REJECTED', reason);
+
+    // Send notification to the author
+    await notificationsService.notifyBookRejected(book.author.user.id, book.title, book.id, reason);
+
+    return result;
   }
 
   async suspendBook(id: string) {

@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { BooksService } from './books.service';
 import { sendSuccess, sendPaginated } from '../../shared/utils/response';
-import { paginationSchema } from '../../shared/utils/pagination';
-import { searchBooksDto } from './books.dto';
+import { searchBooksDto, myBooksQueryDto } from './books.dto';
 
 const booksService = new BooksService();
 
@@ -23,7 +22,7 @@ export class BooksController {
   }
 
   async getMyBooks(req: Request, res: Response) {
-    const query = paginationSchema.parse(req.query);
+    const query = myBooksQueryDto.parse(req.query);
     const { books, total } = await booksService.getMyBooks(req.user!.userId, query);
     sendPaginated(res, books, { page: query.page, limit: query.limit, total });
   }

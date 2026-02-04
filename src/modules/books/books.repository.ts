@@ -1,7 +1,5 @@
 import prisma from '../../config/database';
-import type { CreateBookDto, UpdateBookDto, SearchBooksDto } from './books.dto';
-import type { PaginationQuery } from '../../shared/utils/pagination';
-import { getPaginationParams } from '../../shared/utils/pagination';
+import type { CreateBookDto, UpdateBookDto, SearchBooksDto, MyBooksQueryDto } from './books.dto';
 
 export class BooksRepository {
   async create(authorId: string, data: CreateBookDto, slug: string) {
@@ -96,14 +94,20 @@ export class BooksRepository {
     });
   }
 
-  async findByAuthorId(authorId: string, query: PaginationQuery) {
-    const { skip, take } = getPaginationParams(query);
+  async findByAuthorId(authorId: string, query: MyBooksQueryDto) {
+    const { page, limit, status } = query;
+    const skip = (page - 1) * limit;
 
-    const [rawBooks, total] = await Promise.all([
+    const where: any = { authorId };
+    if (status) {
+      where.status = status;
+    }
+
+    const [rawBooks, total] = (await Promise.all([
       prisma.book.findMany({
-        where: { authorId },
+        where,
         skip,
-        take,
+        take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
           categories: { include: { category: true } },
@@ -115,16 +119,21 @@ export class BooksRepository {
           },
         },
       }),
-      prisma.book.count({ where: { authorId } }),
-    ]);
+      prisma.book.count({ where }),
+    ])) as [any[], number];
 
     // Compute aggregated fields for each book
-    const books = rawBooks.map((book) => {
+    const books = rawBooks.map((book: any) => {
       const reviewCount = book.reviews.length;
       const totalSales = book.purchases.length;
       const averageRating =
-        reviewCount > 0 ? book.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount : 0;
-      const totalRevenue = book.transactions.reduce((sum, t) => sum + Number(t.netAmount), 0);
+        reviewCount > 0
+          ? book.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount
+          : 0;
+      const totalRevenue = book.transactions.reduce(
+        (sum: number, t: any) => sum + Number(t.netAmount),
+        0,
+      );
 
       // Remove the raw relation arrays from response
       const {

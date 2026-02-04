@@ -3,8 +3,7 @@ import { AuthorsRepository } from '../authors/authors.repository';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../../shared/errors/app-error';
 import { generateSlug } from '../../shared/utils/slug';
 import { AuthorStatus, BookStatus } from '../../generated/prisma/enums';
-import type { CreateBookDto, UpdateBookDto, SearchBooksDto } from './books.dto';
-import type { PaginationQuery } from '../../shared/utils/pagination';
+import type { CreateBookDto, UpdateBookDto, SearchBooksDto, MyBooksQueryDto } from './books.dto';
 
 export class BooksService {
   private booksRepository: BooksRepository;
@@ -69,7 +68,7 @@ export class BooksService {
     return this.booksRepository.delete(bookId);
   }
 
-  async getMyBooks(userId: string, query: PaginationQuery) {
+  async getMyBooks(userId: string, query: MyBooksQueryDto) {
     const author = await this.authorsRepository.findByUserId(userId);
     if (!author) {
       throw new ForbiddenError('Author profile not found');

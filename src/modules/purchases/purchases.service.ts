@@ -2,6 +2,7 @@ import prisma from '../../config/database';
 import { PurchasesRepository } from './purchases.repository';
 import { BadRequestError, ConflictError, NotFoundError } from '../../shared/errors/app-error';
 import { BookStatus, PurchaseStatus } from '../../generated/prisma/enums';
+import { notificationsService } from '../notifications/notifications.service';
 import type { CreatePurchaseDto } from './purchases.dto';
 import type { PaginationQuery } from '../../shared/utils/pagination';
 
@@ -87,6 +88,24 @@ export class PurchasesService {
         data: { balance: { increment: netAmount } },
       });
     });
+
+    // Send notifications after successful transaction
+    // Notify the buyer that their purchase is complete
+    await notificationsService.notifyPurchaseComplete(
+      purchase.userId,
+      purchase.book.title,
+      purchase.book.id,
+    );
+
+    // Notify the author about the new sale
+    if (purchase.book.author) {
+      await notificationsService.notifyNewSale(
+        purchase.book.author.userId,
+        purchase.book.title,
+        purchase.book.id,
+        netAmount,
+      );
+    }
 
     return this.purchasesRepository.findById(purchaseId);
   }

@@ -1,5 +1,6 @@
 import { ReviewsRepository } from './reviews.repository';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../shared/errors/app-error';
+import { notificationsService } from '../notifications/notifications.service';
 import type { CreateReviewDto, UpdateReviewDto } from './reviews.dto';
 import type { PaginationQuery } from '../../shared/utils/pagination';
 
@@ -25,7 +26,19 @@ export class ReviewsService {
       throw new ConflictError('You have already reviewed this book');
     }
 
-    return this.reviewsRepository.create(userId, bookId, data.rating, data.comment);
+    const review = await this.reviewsRepository.create(userId, bookId, data.rating, data.comment);
+
+    // Notify the author about the new review (don't notify if author reviews own book)
+    if (review.book && review.book.author && review.book.author.userId !== userId) {
+      await notificationsService.notifyNewReview(
+        review.book.author.userId,
+        review.book.title,
+        review.book.id,
+        data.rating,
+      );
+    }
+
+    return review;
   }
 
   async updateReview(userId: string, reviewId: string, data: UpdateReviewDto) {

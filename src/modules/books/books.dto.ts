@@ -42,6 +42,13 @@ export const searchBooksDto = z.object({
   order: z.enum(['asc', 'desc']).default('desc'),
 });
 
+export const myBooksQueryDto = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(['DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'PUBLISHED']).optional(),
+});
+
 export type CreateBookDto = z.infer<typeof createBookDto>;
 export type UpdateBookDto = z.infer<typeof updateBookDto>;
 export type SearchBooksDto = z.infer<typeof searchBooksDto>;
+export type MyBooksQueryDto = z.infer<typeof myBooksQueryDto>;

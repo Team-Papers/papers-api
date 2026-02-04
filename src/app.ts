@@ -22,6 +22,7 @@ import libraryRoutes from './modules/library/library.routes';
 import reviewsRoutes from './modules/reviews/reviews.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import filesRoutes from './modules/files/files.routes';
+import notificationsRoutes from './modules/notifications/notifications.routes';
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/api/v1/library', libraryRoutes);
 app.use('/api/v1/reviews', reviewsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/files', filesRoutes);
+app.use('/api/v1/notifications', notificationsRoutes);
 
 // Error handling
 app.use(errorHandler);

@@ -41,6 +41,15 @@ export class ReviewsRepository {
         user: {
           select: { id: true, firstName: true, lastName: true, avatarUrl: true },
         },
+        book: {
+          select: {
+            id: true,
+            title: true,
+            author: {
+              select: { userId: true },
+            },
+          },
+        },
       },
     });
   }
