@@ -91,10 +91,12 @@ describe('POST /api/v1/auth/register', () => {
 });
 
 describe('POST /api/v1/auth/login', () => {
-  const email = testEmail('login');
+  let email: string;
 
   beforeAll(async () => {
-    await registerUser({ email });
+    email = testEmail('login');
+    const regRes = await registerUser({ email });
+    expect(regRes.status).toBe(201); // Ensure registration succeeded
     await flushRateLimits();
   });
 

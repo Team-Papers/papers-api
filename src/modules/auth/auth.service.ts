@@ -184,6 +184,13 @@ export class AuthService {
       throw new BadRequestError('Invalid or expired reset token');
     }
 
+    // Verify user still exists before updating
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      await redis.del(`reset:${data.token}`);
+      throw new BadRequestError('Invalid or expired reset token');
+    }
+
     const passwordHash = await bcrypt.hash(data.password, 12);
     await this.authRepository.updateUser(userId, { passwordHash });
     await redis.del(`reset:${data.token}`);
@@ -193,6 +200,13 @@ export class AuthService {
   async verifyEmail(token: string) {
     const userId = await redis.get(`verify:${token}`);
     if (!userId) {
+      throw new BadRequestError('Invalid or expired verification token');
+    }
+
+    // Verify user still exists before updating
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      await redis.del(`verify:${token}`);
       throw new BadRequestError('Invalid or expired verification token');
     }
 
