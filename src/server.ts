@@ -1,10 +1,12 @@
 import { env } from './config/env';
 import app from './app';
 import prisma from './config/database';
+import { initializeStorage } from './config/storage';
 
 const start = async () => {
   try {
     await prisma.$connect();
+    await initializeStorage();
 
     app.listen(env.PORT, () => {
       const base = `http://localhost:${env.PORT}`;

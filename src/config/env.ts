@@ -15,12 +15,19 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRATION: z.string().default('15m'),
   JWT_REFRESH_EXPIRATION: z.string().default('7d'),
 
+  // Firebase (kept for Google Auth)
   FIREBASE_PROJECT_ID: z.string(),
   FIREBASE_CLIENT_EMAIL: z.string(),
   FIREBASE_PRIVATE_KEY: z.string(),
-  FIREBASE_STORAGE_BUCKET: z.string(),
+  FIREBASE_STORAGE_BUCKET: z.string().optional(),
 
-  FRONTEND_URLS: z.string().default('http://localhost:3000,http://localhost:3001,http://localhost:3002'),
+  // Local Storage Configuration
+  STORAGE_PATH: z.string().default('/var/www/papers-storage'),
+  COVERS_PUBLIC_URL: z.string().default('/media/covers'),
+
+  FRONTEND_URLS: z
+    .string()
+    .default('http://localhost:3000,http://localhost:3001,http://localhost:3002'),
 
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('noreply@papers.app'),
