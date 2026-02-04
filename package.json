@@ -1,7 +1,7 @@
 {
   "name": "papers-api",
   "version": "1.0.0",
-  "description": "Paper's — Backend API (Express + TypeScript)",
+  "description": "Papers — Backend API (Express + TypeScript)",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",

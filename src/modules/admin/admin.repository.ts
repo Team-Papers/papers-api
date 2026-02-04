@@ -232,9 +232,31 @@ export class AdminRepository {
   }
 
   async updateBookStatus(id: string, status: string, rejectionReason?: string) {
+    // Get current book to handle rejection history
+    const currentBook = await prisma.book.findUnique({
+      where: { id },
+      select: { rejectionReason: true, rejectionHistory: true },
+    });
+
     const data: Record<string, unknown> = { status };
-    if (status === 'PUBLISHED') data.publishedAt = new Date();
-    if (rejectionReason) data.rejectionReason = rejectionReason;
+
+    if (status === 'PUBLISHED') {
+      data.publishedAt = new Date();
+      // Clear rejection reason when approving, but keep history
+      data.rejectionReason = null;
+    }
+
+    if (rejectionReason) {
+      // Add to rejection history
+      const history =
+        (currentBook?.rejectionHistory as Array<{ reason: string; date: string }>) || [];
+      history.push({
+        reason: rejectionReason,
+        date: new Date().toISOString(),
+      });
+      data.rejectionHistory = history;
+      data.rejectionReason = rejectionReason;
+    }
 
     return prisma.book.update({ where: { id }, data });
   }

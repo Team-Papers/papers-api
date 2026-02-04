@@ -14,7 +14,7 @@ async function main() {
       email: 'admin@papers.app',
       passwordHash: adminPassword,
       firstName: 'Admin',
-      lastName: "Paper's",
+      lastName: 'Papers',
       role: Role.ADMIN,
       status: UserStatus.ACTIVE,
       emailVerified: true,
@@ -71,16 +71,36 @@ async function main() {
   const categories = [
     { name: 'Roman', slug: 'roman', icon: 'book', orderIndex: 1 },
     { name: 'Science-fiction', slug: 'science-fiction', icon: 'rocket', orderIndex: 2 },
-    { name: 'Développement personnel', slug: 'developpement-personnel', icon: 'brain', orderIndex: 3 },
-    { name: 'Business & Entrepreneuriat', slug: 'business-entrepreneuriat', icon: 'briefcase', orderIndex: 4 },
-    { name: 'Technologie & Informatique', slug: 'technologie-informatique', icon: 'laptop', orderIndex: 5 },
+    {
+      name: 'Développement personnel',
+      slug: 'developpement-personnel',
+      icon: 'brain',
+      orderIndex: 3,
+    },
+    {
+      name: 'Business & Entrepreneuriat',
+      slug: 'business-entrepreneuriat',
+      icon: 'briefcase',
+      orderIndex: 4,
+    },
+    {
+      name: 'Technologie & Informatique',
+      slug: 'technologie-informatique',
+      icon: 'laptop',
+      orderIndex: 5,
+    },
     { name: 'Poésie', slug: 'poesie', icon: 'feather', orderIndex: 6 },
     { name: 'Biographie', slug: 'biographie', icon: 'user', orderIndex: 7 },
     { name: 'Histoire', slug: 'histoire', icon: 'clock', orderIndex: 8 },
     { name: 'Éducation', slug: 'education', icon: 'graduation-cap', orderIndex: 9 },
     { name: 'Santé & Bien-être', slug: 'sante-bien-etre', icon: 'heart', orderIndex: 10 },
     { name: 'Cuisine', slug: 'cuisine', icon: 'utensils', orderIndex: 11 },
-    { name: 'Religion & Spiritualité', slug: 'religion-spiritualite', icon: 'star', orderIndex: 12 },
+    {
+      name: 'Religion & Spiritualité',
+      slug: 'religion-spiritualite',
+      icon: 'star',
+      orderIndex: 12,
+    },
   ];
 
   for (const cat of categories) {

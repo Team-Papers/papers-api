@@ -4,10 +4,10 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: "Paper's API",
+      title: 'Papers API',
       version: '1.0.0',
       description:
-        "API Backend de Paper's — Plateforme de publication et de lecture de livres numériques",
+        'API Backend de Papers — Plateforme de publication et de lecture de livres numériques',
       contact: {
         name: 'Team Papers',
         url: 'https://github.com/Team-Papers',

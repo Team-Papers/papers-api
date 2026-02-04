@@ -12,7 +12,7 @@ const start = async () => {
       const base = `http://localhost:${env.PORT}`;
       console.error(`
   ╔══════════════════════════════════════════════════════╗
-  ║            Paper's API — ${env.NODE_ENV}                  ║
+  ║            Papers API — ${env.NODE_ENV}                  ║
   ╠══════════════════════════════════════════════════════╣
   ║                                                      ║
   ║  Server:     ${base}                          ║
