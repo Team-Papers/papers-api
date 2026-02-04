@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { AdminRepository } from './admin.repository';
 import { AuthRepository } from '../auth/auth.repository';
 import { NotFoundError, BadRequestError } from '../../shared/errors/app-error';
+import { storageService } from '../../shared/services/storage.service';
 import type {
   AdminUsersQueryDto,
   AdminAuthorsQueryDto,
@@ -128,6 +129,15 @@ export class AdminService {
 
   async suspendBook(id: string) {
     return this.adminRepository.updateBookStatus(id, 'DRAFT');
+  }
+
+  async getBookDownloadLink(bookId: string, adminUserId: string) {
+    const book = await this.adminRepository.findBookById(bookId);
+    if (!book) throw new NotFoundError('Book');
+    if (!book.fileUrl) throw new BadRequestError('Book has no file');
+
+    const { url, expiresAt } = storageService.generateSignedUrl(book.fileUrl, adminUserId, bookId);
+    return { downloadUrl: url, expiresAt };
   }
 
   // Categories

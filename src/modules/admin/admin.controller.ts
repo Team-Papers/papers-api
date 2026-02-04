@@ -108,6 +108,14 @@ export class AdminController {
     sendSuccess(res, book);
   }
 
+  async getBookDownloadLink(req: Request, res: Response) {
+    const result = await adminService.getBookDownloadLink(
+      req.params.id as string,
+      req.user!.userId,
+    );
+    sendSuccess(res, result);
+  }
+
   // Categories
   async getCategories(_req: Request, res: Response) {
     const categories = await adminService.getCategories();

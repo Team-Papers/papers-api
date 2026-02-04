@@ -86,6 +86,10 @@ router.put('/books/:id/suspend', (req, res, next) => {
   controller.suspendBook(req, res).catch(next);
 });
 
+router.get('/books/:id/download-link', (req, res, next) => {
+  controller.getBookDownloadLink(req, res).catch(next);
+});
+
 // Categories
 router.get('/categories', (req, res, next) => {
   controller.getCategories(req, res).catch(next);
