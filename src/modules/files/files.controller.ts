@@ -67,7 +67,7 @@ export class FilesController {
    * Body: { bookId: string }
    */
   async generateDownloadLink(req: Request, res: Response) {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
     const { bookId } = req.body;
 
     if (!bookId) {
