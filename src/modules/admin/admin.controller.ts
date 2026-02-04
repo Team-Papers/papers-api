@@ -59,6 +59,11 @@ export class AdminController {
     sendSuccess(res, user);
   }
 
+  async deleteUser(req: Request, res: Response) {
+    await adminService.deleteUser(req.params.id as string, req.user!.userId);
+    sendSuccess(res, { message: 'User deleted successfully' });
+  }
+
   // Authors
   async getAuthors(req: Request, res: Response) {
     const query = adminAuthorsQueryDto.parse(req.query);
@@ -81,6 +86,11 @@ export class AdminController {
     const query = adminBooksQueryDto.parse(req.query);
     const { books, total } = await adminService.getBooks(query);
     sendPaginated(res, books, { page: query.page, limit: query.limit, total });
+  }
+
+  async getBookById(req: Request, res: Response) {
+    const book = await adminService.getBookById(req.params.id as string);
+    sendSuccess(res, book);
   }
 
   async approveBook(req: Request, res: Response) {

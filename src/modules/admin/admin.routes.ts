@@ -48,6 +48,10 @@ router.put('/users/:id/demote', (req, res, next) => {
   controller.demoteUser(req, res).catch(next);
 });
 
+router.delete('/users/:id', (req, res, next) => {
+  controller.deleteUser(req, res).catch(next);
+});
+
 // Authors
 router.get('/authors', (req, res, next) => {
   controller.getAuthors(req, res).catch(next);
@@ -64,6 +68,10 @@ router.put('/authors/:id/reject', (req, res, next) => {
 // Books
 router.get('/books', (req, res, next) => {
   controller.getBooks(req, res).catch(next);
+});
+
+router.get('/books/:id', (req, res, next) => {
+  controller.getBookById(req, res).catch(next);
 });
 
 router.put('/books/:id/approve', (req, res, next) => {

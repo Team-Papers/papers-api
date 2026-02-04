@@ -86,6 +86,14 @@ export class AdminService {
     return this.adminRepository.updateUserRole(id, 'READER');
   }
 
+  async deleteUser(id: string, currentAdminId: string) {
+    const user = await this.adminRepository.findUserById(id);
+    if (!user) throw new NotFoundError('User');
+    if (user.role === 'ADMIN') throw new BadRequestError('Cannot delete an admin account');
+    if (user.id === currentAdminId) throw new BadRequestError('Cannot delete your own account');
+    return this.adminRepository.deleteUser(id);
+  }
+
   // Authors
   async getAuthors(query: AdminAuthorsQueryDto) {
     return this.adminRepository.findAuthors(query);
@@ -102,6 +110,12 @@ export class AdminService {
   // Books
   async getBooks(query: AdminBooksQueryDto) {
     return this.adminRepository.findBooks(query);
+  }
+
+  async getBookById(id: string) {
+    const book = await this.adminRepository.findBookById(id);
+    if (!book) throw new NotFoundError('Book');
+    return book;
   }
 
   async approveBook(id: string) {

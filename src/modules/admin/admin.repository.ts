@@ -200,12 +200,47 @@ export class AdminRepository {
     return { books, total };
   }
 
+  async findBookById(id: string) {
+    return prisma.book.findUnique({
+      where: { id },
+      include: {
+        author: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
+        categories: { include: { category: true } },
+        reviews: {
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+          },
+        },
+        _count: { select: { purchases: true, reviews: true } },
+      },
+    });
+  }
+
   async updateBookStatus(id: string, status: string, rejectionReason?: string) {
     const data: Record<string, unknown> = { status };
     if (status === 'PUBLISHED') data.publishedAt = new Date();
     if (rejectionReason) data.rejectionReason = rejectionReason;
 
     return prisma.book.update({ where: { id }, data });
+  }
+
+  async deleteUser(id: string) {
+    return prisma.user.delete({ where: { id } });
   }
 
   // Categories CRUD
