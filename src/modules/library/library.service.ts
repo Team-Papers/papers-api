@@ -1,5 +1,6 @@
 import { LibraryRepository } from './library.repository';
 import { NotFoundError, ForbiddenError } from '../../shared/errors/app-error';
+import { storageService } from '../../shared/services/storage.service';
 import type { UpdateProgressDto } from './library.dto';
 import type { PaginationQuery } from '../../shared/utils/pagination';
 
@@ -38,6 +39,15 @@ export class LibraryService {
     if (!entry.book.fileUrl) {
       throw new NotFoundError('Book file');
     }
-    return { url: entry.book.fileUrl, format: entry.book.fileFormat };
+
+    // Generate signed URL for secure download
+    const { url, expiresAt } = storageService.generateSignedUrl(entry.book.fileUrl, userId, bookId);
+
+    return {
+      downloadUrl: url,
+      format: entry.book.fileFormat,
+      expiresAt: expiresAt.toISOString(),
+      expiresIn: '15 minutes',
+    };
   }
 }

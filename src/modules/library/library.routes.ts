@@ -18,6 +18,10 @@ router.get('/:bookId', authenticate, (req, res, next) => {
   libraryController.getBookDetail(req, res).catch(next);
 });
 
+router.post('/:bookId/download', authenticate, (req, res, next) => {
+  libraryController.getDownloadUrl(req, res).catch(next);
+});
+
 router.put('/:bookId/progress', authenticate, validate(updateProgressDto), (req, res, next) => {
   libraryController.updateProgress(req, res).catch(next);
 });
