@@ -99,7 +99,7 @@ export class BooksRepository {
   async findByAuthorId(authorId: string, query: PaginationQuery) {
     const { skip, take } = getPaginationParams(query);
 
-    const [books, total] = await Promise.all([
+    const [rawBooks, total] = await Promise.all([
       prisma.book.findMany({
         where: { authorId },
         skip,
@@ -107,11 +107,41 @@ export class BooksRepository {
         orderBy: { createdAt: 'desc' },
         include: {
           categories: { include: { category: true } },
-          _count: { select: { reviews: true, purchases: true } },
+          reviews: { select: { rating: true } },
+          purchases: { where: { status: 'COMPLETED' }, select: { id: true } },
+          transactions: {
+            where: { type: 'SALE', status: 'COMPLETED' },
+            select: { netAmount: true },
+          },
         },
       }),
       prisma.book.count({ where: { authorId } }),
     ]);
+
+    // Compute aggregated fields for each book
+    const books = rawBooks.map((book) => {
+      const reviewCount = book.reviews.length;
+      const totalSales = book.purchases.length;
+      const averageRating =
+        reviewCount > 0 ? book.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount : 0;
+      const totalRevenue = book.transactions.reduce((sum, t) => sum + Number(t.netAmount), 0);
+
+      // Remove the raw relation arrays from response
+      const {
+        reviews: _reviews,
+        purchases: _purchases,
+        transactions: _transactions,
+        ...bookData
+      } = book;
+
+      return {
+        ...bookData,
+        totalSales,
+        totalRevenue,
+        averageRating,
+        reviewCount,
+      };
+    });
 
     return { books, total };
   }
