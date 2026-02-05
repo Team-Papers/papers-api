@@ -54,6 +54,8 @@ export class FilesController {
     res.setHeader('Content-Disposition', disposition);
     res.setHeader('Content-Type', this.getMimeType(ext));
     res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.removeHeader('X-Frame-Options');
 
     // Stream the file
     const fileStream = fs.createReadStream(filePath);

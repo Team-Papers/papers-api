@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 
 import swaggerUi from 'swagger-ui-express';
 import { corsOptions } from './config/cors';
+import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './shared/middleware/error-handler.middleware';
 import { globalLimiter } from './shared/middleware/rate-limiter.middleware';
@@ -27,7 +28,19 @@ import notificationsRoutes from './modules/notifications/notifications.routes';
 const app = express();
 
 // Security
-app.use(helmet());
+const frontendOrigins = env.FRONTEND_URLS.split(',').map((url) => url.trim());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'frame-ancestors': ["'self'", ...frontendOrigins],
+      },
+    },
+    frameguard: false, // Using CSP frame-ancestors instead (supports multiple origins)
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+);
 app.use(cors(corsOptions));
 
 // Parsing
