@@ -111,18 +111,24 @@ export class AuthService {
     if (!user) {
       const existingUser = await this.authRepository.findUserByEmail(email);
       if (existingUser) {
-        throw new ConflictError('Email already registered with a different method');
+        // Link Google account to existing user
+        await this.authRepository.updateUser(existingUser.id, {
+          googleId: uid,
+          emailVerified: true,
+          avatarUrl: existingUser.avatarUrl || picture,
+        });
+        user = (await this.authRepository.findUserByEmail(email))!;
+      } else {
+        const nameParts = (name || '').split(' ');
+        user = await this.authRepository.createUser({
+          email,
+          googleId: uid,
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          avatarUrl: picture,
+          emailVerified: true,
+        });
       }
-
-      const nameParts = (name || '').split(' ');
-      user = await this.authRepository.createUser({
-        email,
-        googleId: uid,
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
-        avatarUrl: picture,
-        emailVerified: true,
-      });
     }
 
     if (user.status !== UserStatus.ACTIVE) {

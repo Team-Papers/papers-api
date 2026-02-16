@@ -42,7 +42,15 @@ export class AuthRepository {
     return prisma.user.create({ data });
   }
 
-  async updateUser(id: string, data: { emailVerified?: boolean; passwordHash?: string }) {
+  async updateUser(
+    id: string,
+    data: {
+      emailVerified?: boolean;
+      passwordHash?: string;
+      googleId?: string;
+      avatarUrl?: string;
+    },
+  ) {
     return prisma.user.update({ where: { id }, data });
   }
 
