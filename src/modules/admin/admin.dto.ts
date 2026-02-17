@@ -36,7 +36,7 @@ export const createCategoryDto = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(100),
   description: z.string().optional(),
-  parentId: z.string().uuid().optional(),
+  parentId: z.string().min(1).optional(),
   icon: z.string().max(50).optional(),
   orderIndex: z.number().int().min(0).default(0),
 });
@@ -45,7 +45,7 @@ export const updateCategoryDto = z.object({
   name: z.string().min(1).max(100).optional(),
   slug: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
-  parentId: z.string().uuid().nullable().optional(),
+  parentId: z.string().min(1).nullable().optional(),
   icon: z.string().max(50).optional(),
   orderIndex: z.number().int().min(0).optional(),
 });

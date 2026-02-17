@@ -12,7 +12,7 @@ export const createBookDto = z.object({
   fileSize: z.number().int().positive().optional(),
   fileFormat: z.string().max(10).optional(),
   previewPercent: z.number().int().min(5).max(20).default(10),
-  categoryIds: z.array(z.string().uuid()).min(1, 'At least one category is required').max(3),
+  categoryIds: z.array(z.string().min(1)).min(1, 'At least one category is required').max(3),
 });
 
 export const updateBookDto = z.object({
@@ -27,12 +27,12 @@ export const updateBookDto = z.object({
   fileSize: z.number().int().positive().optional(),
   fileFormat: z.string().max(10).optional(),
   previewPercent: z.number().int().min(5).max(20).optional(),
-  categoryIds: z.array(z.string().uuid()).min(1).max(3).optional(),
+  categoryIds: z.array(z.string().min(1)).min(1).max(3).optional(),
 });
 
 export const searchBooksDto = z.object({
   q: z.string().min(1).optional(),
-  categoryId: z.string().uuid().optional(),
+  categoryId: z.string().min(1).optional(),
   minPrice: z.coerce.number().min(0).optional(),
   maxPrice: z.coerce.number().min(0).optional(),
   language: z.string().max(10).optional(),
