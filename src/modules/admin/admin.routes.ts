@@ -3,9 +3,16 @@ import { AdminController } from './admin.controller';
 import { authenticate, authorize } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
 import { rejectBookDto, createCategoryDto, updateCategoryDto, createAdminDto } from './admin.dto';
+import { CollectionsController } from '../collections/collections.controller';
+import {
+  createCollectionDto,
+  updateCollectionDto,
+  addBookToCollectionDto,
+} from '../collections/collections.dto';
 
 const router = Router();
 const controller = new AdminController();
+const collectionsController = new CollectionsController();
 
 // All admin routes require authentication + ADMIN role
 router.use(authenticate, authorize('ADMIN'));
@@ -105,6 +112,31 @@ router.put('/categories/:id', validate(updateCategoryDto), (req, res, next) => {
 
 router.delete('/categories/:id', (req, res, next) => {
   controller.deleteCategory(req, res).catch(next);
+});
+
+// Collections
+router.get('/collections', (req, res, next) => {
+  collectionsController.getAllAdmin(req, res).catch(next);
+});
+
+router.post('/collections', validate(createCollectionDto), (req, res, next) => {
+  collectionsController.create(req, res).catch(next);
+});
+
+router.put('/collections/:id', validate(updateCollectionDto), (req, res, next) => {
+  collectionsController.update(req, res).catch(next);
+});
+
+router.delete('/collections/:id', (req, res, next) => {
+  collectionsController.delete(req, res).catch(next);
+});
+
+router.post('/collections/:id/books', validate(addBookToCollectionDto), (req, res, next) => {
+  collectionsController.addBook(req, res).catch(next);
+});
+
+router.delete('/collections/:id/books/:bookId', (req, res, next) => {
+  collectionsController.removeBook(req, res).catch(next);
 });
 
 // Transactions
