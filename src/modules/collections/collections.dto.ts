@@ -18,7 +18,7 @@ export const updateCollectionDto = z.object({
 });
 
 export const addBookToCollectionDto = z.object({
-  bookId: z.string().uuid(),
+  bookId: z.string().min(1),
   orderIndex: z.number().int().min(0).default(0),
 });
 
