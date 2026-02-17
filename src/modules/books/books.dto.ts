@@ -6,13 +6,13 @@ export const createBookDto = z.object({
   isbn: z.string().max(20).optional(),
   language: z.string().max(10).default('fr'),
   pageCount: z.number().int().positive().optional(),
-  price: z.number().positive('Price must be positive'),
+  price: z.number().min(0).default(0),
   coverUrl: z.string().max(500).optional(), // Relative path for local storage
   fileUrl: z.string().max(500).optional(), // Filename for local storage
   fileSize: z.number().int().positive().optional(),
   fileFormat: z.string().max(10).optional(),
   previewPercent: z.number().int().min(5).max(20).default(10),
-  categoryIds: z.array(z.string().min(1)).min(1, 'At least one category is required').max(3),
+  categoryIds: z.array(z.string().min(1)).max(3).default([]),
 });
 
 export const updateBookDto = z.object({

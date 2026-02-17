@@ -11,9 +11,10 @@ export class BooksRepository {
         authorId,
         slug,
         price: bookData.price,
-        categories: {
-          create: categoryIds.map((categoryId) => ({ categoryId })),
-        },
+        categories:
+          categoryIds.length > 0
+            ? { create: categoryIds.map((categoryId) => ({ categoryId })) }
+            : undefined,
       },
       include: {
         categories: { include: { category: true } },
@@ -204,6 +205,10 @@ export class BooksRepository {
     ]);
 
     return { books, total };
+  }
+
+  async countCategories(bookId: string) {
+    return prisma.bookCategory.count({ where: { bookId } });
   }
 
   async updateStatus(id: string, status: string, rejectionReason?: string) {

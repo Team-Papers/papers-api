@@ -100,6 +100,15 @@ export class BooksService {
       throw new BadRequestError('Book file is required before submission');
     }
 
+    if (Number(book.price) <= 0) {
+      throw new BadRequestError('Price must be set before submission');
+    }
+
+    const categoryCount = await this.booksRepository.countCategories(bookId);
+    if (categoryCount === 0) {
+      throw new BadRequestError('At least one category is required before submission');
+    }
+
     return this.booksRepository.updateStatus(bookId, BookStatus.PENDING);
   }
 
