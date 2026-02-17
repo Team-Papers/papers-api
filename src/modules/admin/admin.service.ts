@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { AdminRepository } from './admin.repository';
 import { AuthRepository } from '../auth/auth.repository';
+import { AuthorsRepository } from '../authors/authors.repository';
 import { NotFoundError, BadRequestError } from '../../shared/errors/app-error';
 import { storageService } from '../../shared/services/storage.service';
 import { notificationsService } from '../notifications/notifications.service';
@@ -17,10 +18,12 @@ import type {
 export class AdminService {
   private adminRepository: AdminRepository;
   private authRepository: AuthRepository;
+  private authorsRepository: AuthorsRepository;
 
   constructor() {
     this.adminRepository = new AdminRepository();
     this.authRepository = new AuthRepository();
+    this.authorsRepository = new AuthorsRepository();
   }
 
   async getDashboard() {
@@ -135,6 +138,16 @@ export class AdminService {
 
     // Send notification to the author
     await notificationsService.notifyBookApproved(book.author.user.id, book.title, book.id);
+
+    // Notify all followers of this author about the new book
+    const followerUserIds = await this.authorsRepository.getFollowerUserIds(book.author.id);
+    const authorName = book.author.penName || book.author.user.firstName || 'Un auteur';
+    await notificationsService.notifyFollowersNewBook(
+      followerUserIds,
+      book.title,
+      book.id,
+      authorName,
+    );
 
     return result;
   }

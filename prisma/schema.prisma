@@ -25,14 +25,15 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  authorProfile   AuthorProfile?
-  purchases       Purchase[]
-  libraryBooks    UserLibrary[]
-  bookmarks       Bookmark[]
-  reviews         Review[]
-  notifications   Notification[]
-  reports         Report[]       @relation("Reporter")
-  refreshTokens   RefreshToken[]
+  authorProfile    AuthorProfile?
+  purchases        Purchase[]
+  libraryBooks     UserLibrary[]
+  bookmarks        Bookmark[]
+  reviews          Review[]
+  notifications    Notification[]
+  reports          Report[]       @relation("Reporter")
+  refreshTokens    RefreshToken[]
+  authorFollows    AuthorFollower[]
 
   @@map("users")
 }
@@ -91,6 +92,7 @@ model AuthorProfile {
   books        Book[]
   transactions AuthorTransaction[]
   withdrawals  Withdrawal[]
+  followers    AuthorFollower[]
 
   @@map("author_profiles")
 }
@@ -99,6 +101,24 @@ enum AuthorStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// ==========================================
+// AUTHOR FOLLOWERS
+// ==========================================
+
+model AuthorFollower {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  author AuthorProfile @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, authorId])
+  @@index([authorId])
+  @@map("author_followers")
 }
 
 // ==========================================

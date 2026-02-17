@@ -45,6 +45,7 @@ export class AuthorsRepository {
             publishedAt: true,
           },
         },
+        _count: { select: { followers: true } },
       },
     });
   }
@@ -67,7 +68,7 @@ export class AuthorsRepository {
               avatarUrl: true,
             },
           },
-          _count: { select: { books: true } },
+          _count: { select: { books: true, followers: true } },
         },
       }),
       prisma.authorProfile.count({ where: { status: 'APPROVED' } }),
@@ -157,5 +158,45 @@ export class AuthorsRepository {
     ]);
 
     return { balance: profile?.balance ?? 0, transactions, total };
+  }
+
+  // ---- Follow methods ----
+
+  async follow(userId: string, authorId: string) {
+    return prisma.authorFollower.create({
+      data: { userId, authorId },
+    });
+  }
+
+  async unfollow(userId: string, authorId: string) {
+    return prisma.authorFollower.deleteMany({
+      where: { userId, authorId },
+    });
+  }
+
+  async isFollowing(userId: string, authorId: string) {
+    const record = await prisma.authorFollower.findUnique({
+      where: { userId_authorId: { userId, authorId } },
+    });
+    return !!record;
+  }
+
+  async getFollowerCount(authorId: string) {
+    return prisma.authorFollower.count({ where: { authorId } });
+  }
+
+  async getFollowerUserIds(authorId: string) {
+    const followers = await prisma.authorFollower.findMany({
+      where: { authorId },
+      select: { userId: true },
+    });
+    return followers.map((f) => f.userId);
+  }
+
+  async findUserById(userId: string) {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
   }
 }

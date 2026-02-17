@@ -154,6 +154,32 @@ export class NotificationsService {
     });
   }
 
+  async notifyNewFollower(authorUserId: string, followerName: string) {
+    return this.notificationsRepository.create({
+      userId: authorUserId,
+      type: NotificationType.NEW_FOLLOWER,
+      title: 'Nouvel abonné',
+      message: `${followerName} s'est abonné(e) à votre profil.`,
+    });
+  }
+
+  async notifyFollowersNewBook(
+    followerUserIds: string[],
+    bookTitle: string,
+    bookId: string,
+    authorName: string,
+  ) {
+    if (followerUserIds.length === 0) return;
+    const notifications: CreateNotificationData[] = followerUserIds.map((userId) => ({
+      userId,
+      type: NotificationType.AUTHOR_NEW_BOOK,
+      title: 'Nouveau livre disponible',
+      message: `${authorName} vient de publier "${bookTitle}".`,
+      data: { bookId },
+    }));
+    return this.notificationsRepository.createMany(notifications);
+  }
+
   async sendSystemAnnouncement(userIds: string[], title: string, message: string) {
     const notifications: CreateNotificationData[] = userIds.map((userId) => ({
       userId,

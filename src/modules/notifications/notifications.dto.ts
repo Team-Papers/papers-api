@@ -26,6 +26,10 @@ export enum NotificationType {
   // Review events
   NEW_REVIEW = 'NEW_REVIEW',
 
+  // Follow events
+  NEW_FOLLOWER = 'NEW_FOLLOWER',
+  AUTHOR_NEW_BOOK = 'AUTHOR_NEW_BOOK',
+
   // Withdrawal events
   WITHDRAWAL_APPROVED = 'WITHDRAWAL_APPROVED',
   WITHDRAWAL_REJECTED = 'WITHDRAWAL_REJECTED',

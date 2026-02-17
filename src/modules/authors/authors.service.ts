@@ -1,6 +1,12 @@
 import { AuthorsRepository } from './authors.repository';
-import { ConflictError, ForbiddenError, NotFoundError } from '../../shared/errors/app-error';
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from '../../shared/errors/app-error';
 import { AuthorStatus } from '../../generated/prisma/enums';
+import { notificationsService } from '../notifications/notifications.service';
 import type { ApplyAuthorDto, UpdateAuthorDto } from './authors.dto';
 import type { PaginationQuery } from '../../shared/utils/pagination';
 
@@ -76,5 +82,47 @@ export class AuthorsService {
       throw new NotFoundError('Author profile');
     }
     return this.authorsRepository.getEarnings(profile.id, query);
+  }
+
+  // ---- Follow methods ----
+
+  async followAuthor(userId: string, authorId: string) {
+    const author = await this.authorsRepository.findById(authorId);
+    if (!author || author.status !== AuthorStatus.APPROVED) {
+      throw new NotFoundError('Author');
+    }
+
+    if (author.userId === userId) {
+      throw new BadRequestError('You cannot follow yourself');
+    }
+
+    const alreadyFollowing = await this.authorsRepository.isFollowing(userId, authorId);
+    if (alreadyFollowing) {
+      throw new ConflictError('Already following this author');
+    }
+
+    await this.authorsRepository.follow(userId, authorId);
+
+    // Notify the author about the new follower
+    const followerUser = await this.authorsRepository.findUserById(userId);
+    const followerName = followerUser?.firstName || followerUser?.email || 'Un lecteur';
+    await notificationsService.notifyNewFollower(author.userId, followerName);
+  }
+
+  async unfollowAuthor(userId: string, authorId: string) {
+    const author = await this.authorsRepository.findById(authorId);
+    if (!author || author.status !== AuthorStatus.APPROVED) {
+      throw new NotFoundError('Author');
+    }
+
+    await this.authorsRepository.unfollow(userId, authorId);
+  }
+
+  async isFollowing(userId: string, authorId: string) {
+    return this.authorsRepository.isFollowing(userId, authorId);
+  }
+
+  async getFollowerCount(authorId: string) {
+    return this.authorsRepository.getFollowerCount(authorId);
   }
 }

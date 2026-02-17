@@ -35,4 +35,21 @@ router.get('/:id', (req, res, next) => {
   controller.getPublicProfile(req, res).catch(next);
 });
 
+// Follow routes
+router.post('/:id/follow', authenticate, (req, res, next) => {
+  controller.follow(req, res).catch(next);
+});
+
+router.delete('/:id/follow', authenticate, (req, res, next) => {
+  controller.unfollow(req, res).catch(next);
+});
+
+router.get('/:id/is-following', authenticate, (req, res, next) => {
+  controller.checkFollowing(req, res).catch(next);
+});
+
+router.get('/:id/followers/count', (req, res, next) => {
+  controller.getFollowerCount(req, res).catch(next);
+});
+
 export default router;

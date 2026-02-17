@@ -54,4 +54,26 @@ export class AuthorsController {
       },
     });
   }
+
+  // ---- Follow handlers ----
+
+  async follow(req: Request, res: Response) {
+    await authorsService.followAuthor(req.user!.userId, req.params.id as string);
+    sendSuccess(res, { message: 'Followed successfully' });
+  }
+
+  async unfollow(req: Request, res: Response) {
+    await authorsService.unfollowAuthor(req.user!.userId, req.params.id as string);
+    sendSuccess(res, { message: 'Unfollowed successfully' });
+  }
+
+  async checkFollowing(req: Request, res: Response) {
+    const isFollowing = await authorsService.isFollowing(req.user!.userId, req.params.id as string);
+    sendSuccess(res, { isFollowing });
+  }
+
+  async getFollowerCount(req: Request, res: Response) {
+    const count = await authorsService.getFollowerCount(req.params.id as string);
+    sendSuccess(res, { count });
+  }
 }
