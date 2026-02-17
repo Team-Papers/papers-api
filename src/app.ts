@@ -5,6 +5,11 @@ import morgan from 'morgan';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 
+// Enable BigInt JSON serialization (Prisma returns BigInt for Int8/BigInt columns)
+(BigInt.prototype as any).toJSON = function () {
+  return Number(this);
+};
+
 import swaggerUi from 'swagger-ui-express';
 import { corsOptions } from './config/cors';
 import { env } from './config/env';
