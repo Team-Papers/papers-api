@@ -6,7 +6,7 @@ export class LibraryRepository {
   async findByUserId(userId: string, query: PaginationQuery) {
     const { skip, take } = getPaginationParams(query);
 
-    const [books, total] = await Promise.all([
+    const [books, total, favoriteBookIds] = await Promise.all([
       prisma.userLibrary.findMany({
         where: { userId },
         skip,
@@ -32,9 +32,19 @@ export class LibraryRepository {
         },
       }),
       prisma.userLibrary.count({ where: { userId } }),
+      prisma.favorite.findMany({
+        where: { userId },
+        select: { bookId: true },
+      }),
     ]);
 
-    return { books, total };
+    const favoriteSet = new Set(favoriteBookIds.map((f) => f.bookId));
+    const booksWithFavorite = books.map((b) => ({
+      ...b,
+      isFavorite: favoriteSet.has(b.bookId),
+    }));
+
+    return { books: booksWithFavorite, total };
   }
 
   async findByUserAndBook(userId: string, bookId: string) {

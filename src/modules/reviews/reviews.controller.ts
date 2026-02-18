@@ -8,10 +8,9 @@ const reviewsService = new ReviewsService();
 export class ReviewsController {
   async getBookReviews(req: Request, res: Response) {
     const query = paginationSchema.parse(req.query);
-    const { reviews, total, averageRating, totalRatings } = await reviewsService.getBookReviews(
-      req.params.id as string,
-      query,
-    );
+    const userId = req.user?.userId;
+    const { reviews, total, averageRating, totalRatings, userReview, ratingDistribution } =
+      await reviewsService.getBookReviews(req.params.id as string, query, userId);
     sendSuccess(res, {
       reviews,
       pagination: {
@@ -22,6 +21,8 @@ export class ReviewsController {
       },
       averageRating,
       totalRatings,
+      userReview,
+      ratingDistribution,
     });
   }
 

@@ -1,10 +1,11 @@
 import prisma from '../../config/database';
-import type { UserStatus, AuthorStatus, Role } from '../../generated/prisma/enums';
+import type { UserStatus, AuthorStatus, Role, ReviewStatus } from '../../generated/prisma/enums';
 import type {
   AdminUsersQueryDto,
   AdminAuthorsQueryDto,
   AdminBooksQueryDto,
   AdminTransactionsQueryDto,
+  AdminReviewsQueryDto,
   CreateCategoryDto,
   UpdateCategoryDto,
 } from './admin.dto';
@@ -286,6 +287,64 @@ export class AdminRepository {
 
   async deleteCategory(id: string) {
     return prisma.category.delete({ where: { id } });
+  }
+
+  // Reviews
+  async findReviews(query: AdminReviewsQueryDto) {
+    const { page, limit, status, q, bookId, userId } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+    if (bookId) where.bookId = bookId;
+    if (userId) where.userId = userId;
+    if (q) {
+      where.OR = [
+        { comment: { contains: q, mode: 'insensitive' } },
+        { user: { firstName: { contains: q, mode: 'insensitive' } } },
+        { user: { lastName: { contains: q, mode: 'insensitive' } } },
+        { book: { title: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true },
+          },
+          book: {
+            select: { id: true, title: true, coverUrl: true },
+          },
+        },
+      }),
+      prisma.review.count({ where }),
+    ]);
+
+    return { reviews, total };
+  }
+
+  async findReviewById(id: string) {
+    return prisma.review.findUnique({ where: { id } });
+  }
+
+  async updateReviewStatus(id: string, status: ReviewStatus) {
+    return prisma.review.update({
+      where: { id },
+      data: { status },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+        book: { select: { id: true, title: true } },
+      },
+    });
+  }
+
+  async deleteReview(id: string) {
+    return prisma.review.delete({ where: { id } });
   }
 
   // Transactions

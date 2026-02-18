@@ -121,7 +121,14 @@ export class BooksService {
     if (!book || book.status !== BookStatus.PUBLISHED) {
       throw new NotFoundError('Book');
     }
-    return book;
+
+    // Flatten Prisma relations for mobile DTO compatibility
+    const { categories, _count, ...rest } = book as any;
+    return {
+      ...rest,
+      category: categories?.[0]?.category || null,
+      reviewCount: _count?.reviews || 0,
+    };
   }
 
   async getPreview(id: string) {

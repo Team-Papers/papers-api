@@ -73,6 +73,31 @@ export class ReviewsRepository {
     return prisma.review.delete({ where: { id } });
   }
 
+  async findByIdWithUser(id: string) {
+    return prisma.review.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+        },
+      },
+    });
+  }
+
+  async getRatingDistribution(bookId: string) {
+    const results = await prisma.review.groupBy({
+      by: ['rating'],
+      where: { bookId, status: 'VISIBLE' },
+      _count: { rating: true },
+    });
+
+    const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    results.forEach((r) => {
+      distribution[r.rating] = r._count.rating;
+    });
+    return distribution;
+  }
+
   async getAverageRating(bookId: string) {
     const result = await prisma.review.aggregate({
       where: { bookId, status: 'VISIBLE' },

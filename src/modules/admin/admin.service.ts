@@ -10,6 +10,7 @@ import type {
   AdminAuthorsQueryDto,
   AdminBooksQueryDto,
   AdminTransactionsQueryDto,
+  AdminReviewsQueryDto,
   CreateCategoryDto,
   UpdateCategoryDto,
   CreateAdminDto,
@@ -193,6 +194,29 @@ export class AdminService {
 
   async deleteCategory(id: string) {
     return this.adminRepository.deleteCategory(id);
+  }
+
+  // Reviews
+  async getReviews(query: AdminReviewsQueryDto) {
+    return this.adminRepository.findReviews(query);
+  }
+
+  async hideReview(id: string) {
+    const review = await this.adminRepository.findReviewById(id);
+    if (!review) throw new NotFoundError('Review');
+    return this.adminRepository.updateReviewStatus(id, 'HIDDEN');
+  }
+
+  async unhideReview(id: string) {
+    const review = await this.adminRepository.findReviewById(id);
+    if (!review) throw new NotFoundError('Review');
+    return this.adminRepository.updateReviewStatus(id, 'VISIBLE');
+  }
+
+  async deleteReview(id: string) {
+    const review = await this.adminRepository.findReviewById(id);
+    if (!review) throw new NotFoundError('Review');
+    return this.adminRepository.deleteReview(id);
   }
 
   // Transactions

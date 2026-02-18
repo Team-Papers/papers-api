@@ -11,13 +11,26 @@ export class ReviewsService {
     this.reviewsRepository = new ReviewsRepository();
   }
 
-  async getBookReviews(bookId: string, query: PaginationQuery) {
-    const [data, stats] = await Promise.all([
+  async getBookReviews(bookId: string, query: PaginationQuery, userId?: string) {
+    const [data, stats, userReview, distribution] = await Promise.all([
       this.reviewsRepository.findByBookId(bookId, query),
       this.reviewsRepository.getAverageRating(bookId),
+      userId ? this.reviewsRepository.findByUserAndBook(userId, bookId) : Promise.resolve(null),
+      this.reviewsRepository.getRatingDistribution(bookId),
     ]);
 
-    return { ...data, averageRating: stats.average, totalRatings: stats.count };
+    let userReviewWithUser = null;
+    if (userReview) {
+      userReviewWithUser = await this.reviewsRepository.findByIdWithUser(userReview.id);
+    }
+
+    return {
+      ...data,
+      averageRating: stats.average,
+      totalRatings: stats.count,
+      userReview: userReviewWithUser,
+      ratingDistribution: distribution,
+    };
   }
 
   async createReview(userId: string, bookId: string, data: CreateReviewDto) {

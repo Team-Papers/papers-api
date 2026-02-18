@@ -68,6 +68,7 @@ export class BooksRepository {
           select: {
             id: true,
             penName: true,
+            bio: true,
             photoUrl: true,
             user: { select: { firstName: true, lastName: true, avatarUrl: true } },
           },

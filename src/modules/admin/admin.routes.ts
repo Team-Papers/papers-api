@@ -139,6 +139,23 @@ router.delete('/collections/:id/books/:bookId', (req, res, next) => {
   collectionsController.removeBook(req, res).catch(next);
 });
 
+// Reviews
+router.get('/reviews', (req, res, next) => {
+  controller.getReviews(req, res).catch(next);
+});
+
+router.put('/reviews/:id/hide', (req, res, next) => {
+  controller.hideReview(req, res).catch(next);
+});
+
+router.put('/reviews/:id/unhide', (req, res, next) => {
+  controller.unhideReview(req, res).catch(next);
+});
+
+router.delete('/reviews/:id', (req, res, next) => {
+  controller.deleteReview(req, res).catch(next);
+});
+
 // Transactions
 router.get('/transactions', (req, res, next) => {
   controller.getTransactions(req, res).catch(next);

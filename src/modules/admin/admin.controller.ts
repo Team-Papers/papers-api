@@ -6,6 +6,7 @@ import {
   adminAuthorsQueryDto,
   adminBooksQueryDto,
   adminTransactionsQueryDto,
+  adminReviewsQueryDto,
 } from './admin.dto';
 
 const adminService = new AdminService();
@@ -135,6 +136,28 @@ export class AdminController {
   async deleteCategory(req: Request, res: Response) {
     await adminService.deleteCategory(req.params.id as string);
     sendSuccess(res, { message: 'Category deleted successfully' });
+  }
+
+  // Reviews
+  async getReviews(req: Request, res: Response) {
+    const query = adminReviewsQueryDto.parse(req.query);
+    const { reviews, total } = await adminService.getReviews(query);
+    sendPaginated(res, reviews, { page: query.page, limit: query.limit, total });
+  }
+
+  async hideReview(req: Request, res: Response) {
+    const review = await adminService.hideReview(req.params.id as string);
+    sendSuccess(res, review);
+  }
+
+  async unhideReview(req: Request, res: Response) {
+    const review = await adminService.unhideReview(req.params.id as string);
+    sendSuccess(res, review);
+  }
+
+  async deleteReview(req: Request, res: Response) {
+    await adminService.deleteReview(req.params.id as string);
+    sendSuccess(res, { message: 'Review deleted successfully' });
   }
 
   // Transactions

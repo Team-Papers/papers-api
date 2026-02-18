@@ -39,6 +39,26 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
   }
 };
 
+export const optionalAuthenticate = (req: Request, _res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
+    req.user = decoded;
+  } catch {
+    // Invalid token — continue without user
+  }
+  next();
+};
+
 export const authorize = (...roles: Role[]) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {

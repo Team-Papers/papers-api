@@ -62,6 +62,16 @@ export const createAdminDto = z.object({
   lastName: z.string().min(1),
 });
 
+export const adminReviewsQueryDto = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(['VISIBLE', 'HIDDEN', 'REPORTED']).optional(),
+  q: z.string().optional(),
+  bookId: z.string().optional(),
+  userId: z.string().optional(),
+});
+
 export type CreateCategoryDto = z.infer<typeof createCategoryDto>;
 export type UpdateCategoryDto = z.infer<typeof updateCategoryDto>;
 export type CreateAdminDto = z.infer<typeof createAdminDto>;
+export type AdminReviewsQueryDto = z.infer<typeof adminReviewsQueryDto>;
