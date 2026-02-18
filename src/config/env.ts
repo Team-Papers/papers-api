@@ -27,7 +27,9 @@ const envSchema = z.object({
 
   FRONTEND_URLS: z
     .string()
-    .default('http://localhost:3000,http://localhost:3001,http://localhost:3002'),
+    .default(
+      'http://localhost:3000,http://localhost:3001,http://localhost:3002,https://papers237.duckdns.org',
+    ),
 
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('noreply@papers.app'),

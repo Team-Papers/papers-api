@@ -1,7 +1,10 @@
 import { CorsOptions } from 'cors';
 import { env } from './env';
 
-const allowedOrigins = env.FRONTEND_URLS.split(',').map((url) => url.trim());
+const allowedOrigins = [
+  ...env.FRONTEND_URLS.split(',').map((url) => url.trim()),
+  'https://papers237.duckdns.org',
+];
 
 export const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
