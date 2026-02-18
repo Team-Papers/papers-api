@@ -15,6 +15,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
+          script_stop: true
           script: |
             cd /home/softengine/papers-api
             git pull origin main
@@ -22,5 +23,7 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d api
             sleep 10
             docker exec papers-api npx prisma migrate deploy
+            docker compose -f docker-compose.prod.yml restart api
+            sleep 5
             curl -sf http://localhost:8050/api/v1/health || exit 1
             echo "Deployment successful!"
