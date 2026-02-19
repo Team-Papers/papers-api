@@ -35,6 +35,7 @@ model User {
   refreshTokens    RefreshToken[]
   authorFollows    AuthorFollower[]
   favorites        Favorite[]
+  articleLikes     ArticleLike[]
 
   @@map("users")
 }
@@ -475,6 +476,51 @@ model CollectionBook {
 
   @@id([collectionId, bookId])
   @@map("collection_books")
+}
+
+// ==========================================
+// BLOG ARTICLES
+// ==========================================
+
+model Article {
+  id            String        @id @default(uuid()) @db.Uuid
+  title         String        @db.VarChar(255)
+  slug          String        @unique @db.VarChar(255)
+  content       String        @db.Text
+  excerpt       String?       @db.VarChar(500)
+  coverUrl      String?       @map("cover_url") @db.VarChar(500)
+  category      String?       @db.VarChar(100)
+  status        ArticleStatus @default(DRAFT)
+  publishedAt   DateTime?     @map("published_at")
+  likesCount    Int           @default(0) @map("likes_count")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  likes ArticleLike[]
+
+  @@index([status])
+  @@index([slug])
+  @@map("articles")
+}
+
+model ArticleLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  articleId String   @map("article_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, userId])
+  @@index([userId])
+  @@map("article_likes")
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 // ==========================================

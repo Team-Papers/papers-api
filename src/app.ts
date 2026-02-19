@@ -30,6 +30,7 @@ import collectionsRoutes from './modules/collections/collections.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import filesRoutes from './modules/files/files.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
+import blogRoutes from './modules/blog/blog.routes';
 
 const app = express();
 
@@ -88,6 +89,7 @@ app.use('/api/v1/collections', collectionsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/files', filesRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
+app.use('/api/v1/blog', blogRoutes);
 
 // Error handling
 app.use(errorHandler);
