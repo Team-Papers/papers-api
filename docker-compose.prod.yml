@@ -43,6 +43,8 @@ services:
       - '8050:8000'
     env_file:
       - .env.production
+    volumes:
+      - papers_storage:/var/www/papers-storage
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,3 +60,4 @@ services:
 volumes:
   papers_postgres_data:
   papers_redis_data:
+  papers_storage:

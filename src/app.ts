@@ -10,12 +10,14 @@ import cookieParser from 'cookie-parser';
   return Number(this);
 };
 
+import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import { corsOptions } from './config/cors';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './shared/middleware/error-handler.middleware';
 import { globalLimiter } from './shared/middleware/rate-limiter.middleware';
+import { STORAGE_BASE_PATH } from './config/storage';
 
 import authRoutes from './modules/auth/auth.routes';
 import usersRoutes from './modules/users/users.routes';
@@ -63,6 +65,15 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Rate limiting
 app.use(globalLimiter);
+
+// Serve media files (covers, avatars, photos)
+app.use(
+  '/media/covers',
+  express.static(path.join(STORAGE_BASE_PATH, 'covers'), {
+    maxAge: '7d',
+    immutable: true,
+  }),
+);
 
 // Health check
 app.get('/api/v1/health', (_req, res) => {
