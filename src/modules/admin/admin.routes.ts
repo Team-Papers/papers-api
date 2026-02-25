@@ -161,4 +161,8 @@ router.get('/transactions', (req, res, next) => {
   controller.getTransactions(req, res).catch(next);
 });
 
+router.get('/transactions/:id', (req, res, next) => {
+  controller.getTransactionById(req, res).catch(next);
+});
+
 export default router;

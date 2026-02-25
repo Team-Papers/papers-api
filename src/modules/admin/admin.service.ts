@@ -223,4 +223,10 @@ export class AdminService {
   async getTransactions(query: AdminTransactionsQueryDto) {
     return this.adminRepository.findTransactions(query);
   }
+
+  async getTransactionById(id: string) {
+    const tx = await this.adminRepository.findTransactionById(id);
+    if (!tx) throw new NotFoundError('Transaction');
+    return tx;
+  }
 }

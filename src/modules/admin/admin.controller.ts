@@ -166,4 +166,9 @@ export class AdminController {
     const { transactions, total } = await adminService.getTransactions(query);
     sendPaginated(res, transactions, { page: query.page, limit: query.limit, total });
   }
+
+  async getTransactionById(req: Request, res: Response) {
+    const tx = await adminService.getTransactionById(req.params.id as string);
+    sendSuccess(res, tx);
+  }
 }

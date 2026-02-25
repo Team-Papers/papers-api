@@ -13,18 +13,126 @@ import type {
 export class AdminRepository {
   // Dashboard
   async getDashboardStats() {
-    const [usersCount, authorsCount, booksCount, totalRevenue, pendingAuthors, pendingBooks] =
-      await Promise.all([
-        prisma.user.count(),
-        prisma.authorProfile.count({ where: { status: 'APPROVED' } }),
-        prisma.book.count({ where: { status: 'PUBLISHED' } }),
-        prisma.authorTransaction.aggregate({
-          where: { type: 'SALE', status: 'COMPLETED' },
-          _sum: { amount: true },
-        }),
-        prisma.authorProfile.count({ where: { status: 'PENDING' } }),
-        prisma.book.count({ where: { status: 'PENDING' } }),
-      ]);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const [
+      usersCount,
+      authorsCount,
+      booksCount,
+      totalRevenue,
+      pendingAuthors,
+      pendingBooks,
+      recentTransactions,
+      salesLast30Days,
+      topBooks,
+      topAuthors,
+      categoryDistribution,
+      newUsersLast7Days,
+      avgRating,
+      totalPurchases,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.authorProfile.count({ where: { status: 'APPROVED' } }),
+      prisma.book.count({ where: { status: 'PUBLISHED' } }),
+      prisma.authorTransaction.aggregate({
+        where: { type: 'SALE', status: 'COMPLETED' },
+        _sum: { amount: true },
+      }),
+      prisma.authorProfile.count({ where: { status: 'PENDING' } }),
+      prisma.book.count({ where: { status: 'PENDING' } }),
+
+      // Recent transactions (last 10)
+      prisma.authorTransaction.findMany({
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: { penName: true, user: { select: { firstName: true, lastName: true } } },
+          },
+          book: { select: { title: true } },
+        },
+      }),
+
+      // Sales per day (last 30 days)
+      prisma.$queryRaw<{ date: string; amount: number }[]>`
+        SELECT DATE(created_at) as date, COALESCE(SUM(amount), 0)::int as amount
+        FROM author_transactions
+        WHERE type = 'SALE' AND status = 'COMPLETED' AND created_at >= ${thirtyDaysAgo}
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `,
+
+      // Top 5 books by sales count
+      prisma.book.findMany({
+        where: { status: 'PUBLISHED' },
+        take: 5,
+        orderBy: { purchases: { _count: 'desc' } },
+        select: {
+          id: true,
+          title: true,
+          coverUrl: true,
+          price: true,
+          author: { select: { penName: true } },
+          _count: { select: { purchases: true } },
+        },
+      }),
+
+      // Top 5 authors by revenue (use raw query since no totalRevenue field)
+      prisma.$queryRaw<
+        {
+          id: string;
+          pen_name: string | null;
+          photo_url: string | null;
+          first_name: string | null;
+          last_name: string | null;
+          avatar_url: string | null;
+          total_revenue: number;
+          total_books: number;
+        }[]
+      >`
+        SELECT ap.id, ap.pen_name, ap.photo_url,
+               u.first_name, u.last_name, u.avatar_url,
+               COALESCE(SUM(at.amount), 0)::int as total_revenue,
+               COUNT(DISTINCT b.id)::int as total_books
+        FROM author_profiles ap
+        JOIN users u ON u.id = ap.user_id
+        LEFT JOIN author_transactions at ON at.author_id = ap.id AND at.type = 'SALE' AND at.status = 'COMPLETED'
+        LEFT JOIN books b ON b.author_id = ap.id AND b.status = 'PUBLISHED'
+        WHERE ap.status = 'APPROVED'
+        GROUP BY ap.id, ap.pen_name, ap.photo_url, u.first_name, u.last_name, u.avatar_url
+        ORDER BY total_revenue DESC
+        LIMIT 5
+      `,
+
+      // Books per category
+      prisma.category.findMany({
+        select: { name: true, _count: { select: { books: true } } },
+        orderBy: { books: { _count: 'desc' } },
+        take: 10,
+      }),
+
+      // New users per day (last 7 days)
+      prisma.$queryRaw<{ date: string; count: number }[]>`
+        SELECT DATE(created_at) as date, COUNT(*)::int as count
+        FROM users
+        WHERE created_at >= ${sevenDaysAgo}
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `,
+
+      // Average review rating
+      prisma.review.aggregate({
+        where: { status: 'VISIBLE' },
+        _avg: { rating: true },
+        _count: true,
+      }),
+
+      // Total purchases
+      prisma.purchase.count(),
+    ]);
 
     return {
       usersCount,
@@ -33,6 +141,45 @@ export class AdminRepository {
       totalRevenue: totalRevenue._sum.amount ?? 0,
       pendingAuthors,
       pendingBooks,
+      totalPurchases,
+      avgRating: Math.round((avgRating._avg.rating ?? 0) * 10) / 10,
+      totalReviews: avgRating._count,
+      recentTransactions: recentTransactions.map((tx) => ({
+        id: tx.id,
+        type: tx.type,
+        amount: tx.amount,
+        createdAt: tx.createdAt,
+        authorName:
+          tx.author.penName ||
+          `${tx.author.user.firstName || ''} ${tx.author.user.lastName || ''}`.trim(),
+        bookTitle: tx.book?.title || null,
+      })),
+      salesChart: salesLast30Days.map((row) => ({
+        date: new Date(row.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+        amount: Number(row.amount),
+      })),
+      topBooks: topBooks.map((b) => ({
+        id: b.id,
+        title: b.title,
+        coverUrl: b.coverUrl,
+        price: b.price,
+        authorName: b.author.penName || '',
+        salesCount: b._count.purchases,
+      })),
+      topAuthors: topAuthors.map((a) => ({
+        id: a.id,
+        penName: a.pen_name || `${a.first_name || ''} ${a.last_name || ''}`.trim(),
+        photoUrl: a.photo_url || a.avatar_url,
+        totalRevenue: Number(a.total_revenue),
+        totalBooks: Number(a.total_books),
+      })),
+      categoryDistribution: categoryDistribution
+        .filter((c) => c._count.books > 0)
+        .map((c) => ({ name: c.name, count: c._count.books })),
+      newUsersChart: newUsersLast7Days.map((row) => ({
+        date: new Date(row.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+        count: Number(row.count),
+      })),
     };
   }
 
@@ -366,15 +513,72 @@ export class AdminRepository {
             select: {
               id: true,
               penName: true,
-              user: { select: { firstName: true, lastName: true } },
+              user: {
+                select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true },
+              },
             },
           },
-          book: { select: { id: true, title: true } },
+          book: { select: { id: true, title: true, coverUrl: true, price: true } },
+          purchase: {
+            select: {
+              id: true,
+              amount: true,
+              paymentMethod: true,
+              paymentRef: true,
+              status: true,
+              createdAt: true,
+              user: {
+                select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true },
+              },
+            },
+          },
         },
       }),
       prisma.authorTransaction.count({ where }),
     ]);
 
     return { transactions, total };
+  }
+
+  async findTransactionById(id: string) {
+    return prisma.authorTransaction.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            penName: true,
+            photoUrl: true,
+            user: {
+              select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true },
+            },
+          },
+        },
+        book: {
+          select: { id: true, title: true, coverUrl: true, price: true, slug: true },
+        },
+        purchase: {
+          select: {
+            id: true,
+            amount: true,
+            paymentMethod: true,
+            paymentRef: true,
+            status: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                avatarUrl: true,
+                role: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 }
