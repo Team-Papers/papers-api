@@ -18,7 +18,7 @@ jobs:
           script_stop: true
           script: |
             cd /home/softengine/papers-api
-            git checkout -- .
+            git reset --hard HEAD
             git clean -fd
             git pull origin main
             docker compose -f docker-compose.prod.yml build --no-cache api
