@@ -31,6 +31,10 @@ export class AdminService {
     return this.adminRepository.getDashboardStats();
   }
 
+  async getUsersChart(period: string) {
+    return this.adminRepository.getUsersChart(period);
+  }
+
   async createAdmin(data: CreateAdminDto) {
     const existing = await this.authRepository.findUserByEmail(data.email);
     if (existing) throw new BadRequestError('Email already in use');
@@ -103,6 +107,12 @@ export class AdminService {
   // Authors
   async getAuthors(query: AdminAuthorsQueryDto) {
     return this.adminRepository.findAuthors(query);
+  }
+
+  async getAuthorById(id: string) {
+    const author = await this.adminRepository.findAuthorById(id);
+    if (!author) throw new NotFoundError('Author');
+    return author;
   }
 
   async approveAuthor(id: string) {

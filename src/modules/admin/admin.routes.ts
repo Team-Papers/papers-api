@@ -22,6 +22,10 @@ router.get('/dashboard', (req, res, next) => {
   controller.getDashboard(req, res).catch(next);
 });
 
+router.get('/dashboard/users-chart', (req, res, next) => {
+  controller.getUsersChart(req, res).catch(next);
+});
+
 // Users
 router.get('/users', (req, res, next) => {
   controller.getUsers(req, res).catch(next);
@@ -62,6 +66,10 @@ router.delete('/users/:id', (req, res, next) => {
 // Authors
 router.get('/authors', (req, res, next) => {
   controller.getAuthors(req, res).catch(next);
+});
+
+router.get('/authors/:id', (req, res, next) => {
+  controller.getAuthorById(req, res).catch(next);
 });
 
 router.put('/authors/:id/approve', (req, res, next) => {

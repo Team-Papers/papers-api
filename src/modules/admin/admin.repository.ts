@@ -65,20 +65,28 @@ export class AdminRepository {
         ORDER BY date ASC
       `,
 
-      // Top 5 books by sales count
-      prisma.book.findMany({
-        where: { status: 'PUBLISHED' },
-        take: 5,
-        orderBy: { purchases: { _count: 'desc' } },
-        select: {
-          id: true,
-          title: true,
-          coverUrl: true,
-          price: true,
-          author: { select: { penName: true } },
-          _count: { select: { purchases: true } },
-        },
-      }),
+      // Top 5 books by completed sales count
+      prisma.$queryRaw<
+        {
+          id: string;
+          title: string;
+          cover_url: string | null;
+          price: number;
+          pen_name: string | null;
+          sales_count: number;
+        }[]
+      >`
+        SELECT b.id, b.title, b.cover_url, b.price::int,
+               ap.pen_name,
+               COUNT(p.id)::int as sales_count
+        FROM books b
+        LEFT JOIN purchases p ON p.book_id = b.id AND p.status = 'COMPLETED'
+        LEFT JOIN author_profiles ap ON ap.id = b.author_id
+        WHERE b.status = 'PUBLISHED'
+        GROUP BY b.id, b.title, b.cover_url, b.price, ap.pen_name
+        ORDER BY sales_count DESC
+        LIMIT 5
+      `,
 
       // Top 5 authors by revenue (use raw query since no totalRevenue field)
       prisma.$queryRaw<
@@ -161,10 +169,10 @@ export class AdminRepository {
       topBooks: topBooks.map((b) => ({
         id: b.id,
         title: b.title,
-        coverUrl: b.coverUrl,
-        price: b.price,
-        authorName: b.author.penName || '',
-        salesCount: b._count.purchases,
+        coverUrl: b.cover_url,
+        price: Number(b.price),
+        authorName: b.pen_name || '',
+        salesCount: Number(b.sales_count),
       })),
       topAuthors: topAuthors.map((a) => ({
         id: a.id,
@@ -178,6 +186,64 @@ export class AdminRepository {
         .map((c) => ({ name: c.name, count: c._count.books })),
       newUsersChart: newUsersLast7Days.map((row) => ({
         date: new Date(row.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+        count: Number(row.count),
+      })),
+    };
+  }
+
+  async getUsersChart(period: string) {
+    const now = new Date();
+    let startDate: Date;
+    let groupBy: string;
+    let dateFormat: string;
+
+    switch (period) {
+      case '30d':
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 30);
+        groupBy = 'DATE(created_at)';
+        dateFormat = 'day';
+        break;
+      case '3m':
+        startDate = new Date(now);
+        startDate.setMonth(startDate.getMonth() - 3);
+        groupBy = 'DATE(created_at)';
+        dateFormat = 'day';
+        break;
+      case '6m':
+        startDate = new Date(now);
+        startDate.setMonth(startDate.getMonth() - 6);
+        groupBy = "DATE_TRUNC('week', created_at)";
+        dateFormat = 'week';
+        break;
+      case '1y':
+        startDate = new Date(now);
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        groupBy = "DATE_TRUNC('month', created_at)";
+        dateFormat = 'month';
+        break;
+      default: // 7d
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 7);
+        groupBy = 'DATE(created_at)';
+        dateFormat = 'day';
+        break;
+    }
+
+    const rows = await prisma.$queryRawUnsafe<{ date: string; count: number }[]>(
+      `SELECT ${groupBy} as date, COUNT(*)::int as count
+       FROM users
+       WHERE created_at >= $1
+       GROUP BY ${groupBy}
+       ORDER BY date ASC`,
+      startDate,
+    );
+
+    return {
+      period: period || '7d',
+      dateFormat,
+      data: rows.map((row) => ({
+        date: new Date(row.date).toISOString(),
         count: Number(row.count),
       })),
     };
@@ -293,6 +359,85 @@ export class AdminRepository {
     return { authors, total };
   }
 
+  async findAuthorById(id: string) {
+    const author = await prisma.authorProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            role: true,
+            status: true,
+            emailVerified: true,
+            createdAt: true,
+          },
+        },
+        books: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            coverUrl: true,
+            price: true,
+            status: true,
+            publishedAt: true,
+            createdAt: true,
+            _count: { select: { purchases: { where: { status: 'COMPLETED' } }, reviews: true } },
+          },
+        },
+        transactions: {
+          take: 20,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            type: true,
+            amount: true,
+            status: true,
+            reference: true,
+            createdAt: true,
+            book: { select: { id: true, title: true } },
+          },
+        },
+        _count: {
+          select: {
+            books: true,
+            followers: true,
+          },
+        },
+      },
+    });
+
+    if (!author) return null;
+
+    // Compute total revenue from completed sales
+    const revenueResult = await prisma.authorTransaction.aggregate({
+      where: { authorId: id, type: 'SALE', status: 'COMPLETED' },
+      _sum: { amount: true },
+    });
+
+    // Compute total completed sales count
+    const totalSales = await prisma.authorTransaction.count({
+      where: { authorId: id, type: 'SALE', status: 'COMPLETED' },
+    });
+
+    // Compute total withdrawals
+    const withdrawalsResult = await prisma.authorTransaction.aggregate({
+      where: { authorId: id, type: 'WITHDRAWAL', status: 'COMPLETED' },
+      _sum: { amount: true },
+    });
+
+    return {
+      ...author,
+      totalRevenue: Number(revenueResult._sum.amount ?? 0),
+      totalSales,
+      totalWithdrawals: Number(withdrawalsResult._sum.amount ?? 0),
+    };
+  }
+
   async updateAuthorStatus(id: string, status: AuthorStatus) {
     const author = await prisma.authorProfile.update({
       where: { id },
@@ -339,7 +484,7 @@ export class AdminRepository {
             },
           },
           categories: { include: { category: { select: { id: true, name: true } } } },
-          _count: { select: { purchases: true, reviews: true } },
+          _count: { select: { purchases: { where: { status: 'COMPLETED' } }, reviews: true } },
         },
       }),
       prisma.book.count({ where }),
@@ -374,7 +519,7 @@ export class AdminRepository {
             user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
           },
         },
-        _count: { select: { purchases: true, reviews: true } },
+        _count: { select: { purchases: { where: { status: 'COMPLETED' } }, reviews: true } },
       },
     });
   }

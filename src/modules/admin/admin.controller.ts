@@ -18,6 +18,12 @@ export class AdminController {
     sendSuccess(res, stats);
   }
 
+  async getUsersChart(req: Request, res: Response) {
+    const period = (req.query.period as string) || '7d';
+    const chart = await adminService.getUsersChart(period);
+    sendSuccess(res, chart);
+  }
+
   async createAdmin(req: Request, res: Response) {
     const user = await adminService.createAdmin(req.body);
     sendSuccess(res, user, 201);
@@ -70,6 +76,11 @@ export class AdminController {
     const query = adminAuthorsQueryDto.parse(req.query);
     const { authors, total } = await adminService.getAuthors(query);
     sendPaginated(res, authors, { page: query.page, limit: query.limit, total });
+  }
+
+  async getAuthorById(req: Request, res: Response) {
+    const author = await adminService.getAuthorById(req.params.id as string);
+    sendSuccess(res, author);
   }
 
   async approveAuthor(req: Request, res: Response) {
