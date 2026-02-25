@@ -496,11 +496,22 @@ export class AdminRepository {
 
   // Transactions
   async findTransactions(query: AdminTransactionsQueryDto) {
-    const { page, limit, type } = query;
+    const { page, limit, type, status, q } = query;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
     if (type) where.type = type;
+    if (status) where.status = status;
+    if (q) {
+      where.OR = [
+        { author: { penName: { contains: q, mode: 'insensitive' } } },
+        { author: { user: { email: { contains: q, mode: 'insensitive' } } } },
+        { author: { user: { firstName: { contains: q, mode: 'insensitive' } } } },
+        { book: { title: { contains: q, mode: 'insensitive' } } },
+        { purchase: { user: { email: { contains: q, mode: 'insensitive' } } } },
+        { purchase: { user: { firstName: { contains: q, mode: 'insensitive' } } } },
+      ];
+    }
 
     const [transactions, total] = await Promise.all([
       prisma.authorTransaction.findMany({

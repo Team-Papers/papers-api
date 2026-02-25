@@ -26,6 +26,8 @@ export const adminTransactionsQueryDto = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   type: z.enum(['SALE', 'WITHDRAWAL']).optional(),
+  status: z.enum(['PENDING', 'COMPLETED', 'FAILED']).optional(),
+  q: z.string().optional(),
 });
 
 export const rejectBookDto = z.object({
