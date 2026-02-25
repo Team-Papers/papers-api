@@ -130,8 +130,8 @@ export class AdminRepository {
         _count: true,
       }),
 
-      // Total purchases
-      prisma.purchase.count(),
+      // Total completed purchases
+      prisma.purchase.count({ where: { status: 'COMPLETED' } }),
     ]);
 
     return {
