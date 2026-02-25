@@ -135,9 +135,9 @@ export class AdminRepository {
     ]);
 
     return {
-      usersCount,
-      authorsCount,
-      booksCount,
+      totalUsers: usersCount,
+      totalAuthors: authorsCount,
+      totalBooks: booksCount,
       totalRevenue: totalRevenue._sum.amount ?? 0,
       pendingAuthors,
       pendingBooks,
