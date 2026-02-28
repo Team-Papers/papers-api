@@ -9,6 +9,19 @@ jobs:
     name: Deploy to VPS
     runs-on: ubuntu-latest
     steps:
+      - name: Write .env.production to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script_stop: true
+          envs: ENV_PRODUCTION
+          script: |
+            echo "$ENV_PRODUCTION" > /home/softengine/papers-api/.env.production
+        env:
+          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
