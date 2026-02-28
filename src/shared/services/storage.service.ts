@@ -80,8 +80,9 @@ export class StorageService {
     const signature = this.sign(payloadBase64);
     const token = `${payloadBase64}.${signature}`;
 
+    const baseUrl = env.APP_BASE_URL.replace(/\/$/, '');
     return {
-      url: `/api/v1/files/download?token=${token}`,
+      url: `${baseUrl}/api/v1/files/download?token=${token}`,
       expiresAt: new Date(expiresAt * 1000),
     };
   }

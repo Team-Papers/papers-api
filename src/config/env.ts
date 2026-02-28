@@ -24,6 +24,7 @@ const envSchema = z.object({
   // Local Storage Configuration
   STORAGE_PATH: z.string().default('/var/www/papers-storage'),
   COVERS_PUBLIC_URL: z.string().default('/media/covers'),
+  APP_BASE_URL: z.string().default('http://localhost:8000'),
 
   FRONTEND_URLS: z
     .string()
