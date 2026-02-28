@@ -28,9 +28,15 @@ export class FilesController {
     // Get the file path
     const filePath = storageService.getBookPath(payload.fileName);
 
-    // Check if file exists
-    const exists = await storageService.fileExists(filePath);
-    if (!exists) {
+    // Check if file exists and get its size
+    let fileStat: fs.Stats;
+    try {
+      fileStat = fs.statSync(filePath);
+    } catch {
+      throw new NotFoundError('File');
+    }
+
+    if (!fileStat.isFile() || fileStat.size === 0) {
       throw new NotFoundError('File');
     }
 
@@ -53,17 +59,28 @@ export class FilesController {
     const disposition = inline === 'true' ? 'inline' : `attachment; filename="${downloadName}"`;
     res.setHeader('Content-Disposition', disposition);
     res.setHeader('Content-Type', this.getMimeType(ext));
+    res.setHeader('Content-Length', fileStat.size);
     res.setHeader('Cache-Control', 'private, no-cache');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.removeHeader('X-Frame-Options');
 
     // Stream the file
     const fileStream = fs.createReadStream(filePath);
+
+    fileStream.on('error', (err) => {
+      console.error(`❌ File stream error for ${payload.fileName}:`, err);
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: 'File read error' });
+      } else {
+        res.destroy();
+      }
+    });
+
     fileStream.pipe(res);
 
     // Log the access
     console.log(
-      `📥 ${inline === 'true' ? 'Preview' : 'Download'}: ${payload.fileName} by user ${payload.userId}`,
+      `📥 ${inline === 'true' ? 'Preview' : 'Download'}: ${payload.fileName} (${fileStat.size} bytes) by user ${payload.userId}`,
     );
   }
 
