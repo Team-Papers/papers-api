@@ -37,6 +37,9 @@ import webhookRoutes from './modules/wechango/wechango.routes';
 
 const app = express();
 
+// Webhooks (BEFORE security/cors/json — needs raw body, no CORS restrictions)
+app.use('/api/v1/webhooks', webhookRoutes);
+
 // Security
 const frontendOrigins = env.FRONTEND_URLS.split(',').map((url) => url.trim());
 app.use(
@@ -52,9 +55,6 @@ app.use(
   }),
 );
 app.use(cors(corsOptions));
-
-// Webhooks (BEFORE json parsing — needs raw body for signature verification)
-app.use('/api/v1/webhooks', webhookRoutes);
 
 // Parsing
 app.use(express.json({ limit: '10mb' }));
