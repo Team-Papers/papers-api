@@ -117,6 +117,7 @@ export class PurchasesService {
       select: {
         id: true,
         status: true,
+        paymentRef: true,
         failureCode: true,
         failureMessage: true,
         createdAt: true,
@@ -127,7 +128,56 @@ export class PurchasesService {
       throw new NotFoundError('Purchase');
     }
 
-    return purchase;
+    // If still PENDING and has a Wechango paymentRef, check Wechango directly
+    if (purchase.status === 'PENDING' && purchase.paymentRef) {
+      try {
+        const wechangoPayment = await wechangoService.getPayment(purchase.paymentRef);
+
+        if (wechangoPayment.status === 'succeeded') {
+          // Complete the purchase (same as webhook flow)
+          const fullPurchase = await this.purchasesRepository.findById(purchaseId);
+          if (fullPurchase) {
+            await this.completePurchase(fullPurchase);
+          }
+          return {
+            id: purchase.id,
+            status: 'COMPLETED',
+            failureCode: null,
+            failureMessage: null,
+            createdAt: purchase.createdAt,
+          };
+        }
+
+        if (wechangoPayment.status === 'failed' || wechangoPayment.status === 'cancelled') {
+          await prisma.purchase.update({
+            where: { id: purchaseId },
+            data: {
+              status: 'FAILED',
+              failureCode: wechangoPayment.failure_code ?? 'PAYMENT_FAILED',
+              failureMessage: wechangoPayment.failure_message ?? 'Le paiement a echoue.',
+            },
+          });
+          return {
+            id: purchase.id,
+            status: 'FAILED',
+            failureCode: wechangoPayment.failure_code ?? 'PAYMENT_FAILED',
+            failureMessage: wechangoPayment.failure_message ?? 'Le paiement a echoue.',
+            createdAt: purchase.createdAt,
+          };
+        }
+      } catch (err) {
+        // If Wechango API is unreachable, return current DB status
+        console.error('[getStatus] Wechango check failed:', err);
+      }
+    }
+
+    return {
+      id: purchase.id,
+      status: purchase.status,
+      failureCode: purchase.failureCode,
+      failureMessage: purchase.failureMessage,
+      createdAt: purchase.createdAt,
+    };
   }
 
   /**
