@@ -214,14 +214,18 @@ model BookCategory {
 // ==========================================
 
 model Purchase {
-  id            String         @id @default(uuid()) @db.Uuid
-  userId        String         @map("user_id") @db.Uuid
-  bookId        String         @map("book_id") @db.Uuid
-  amount        Decimal        @db.Decimal(10, 2)
-  paymentMethod String?        @map("payment_method") @db.VarChar(20)
-  paymentRef    String?        @map("payment_ref") @db.VarChar(100)
-  status        PurchaseStatus @default(PENDING)
-  createdAt     DateTime       @default(now()) @map("created_at")
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @map("user_id") @db.Uuid
+  bookId         String         @map("book_id") @db.Uuid
+  amount         Decimal        @db.Decimal(10, 2)
+  paymentMethod  String?        @map("payment_method") @db.VarChar(20)
+  paymentRef     String?        @map("payment_ref") @db.VarChar(100)
+  phoneNumber    String?        @map("phone_number") @db.VarChar(20)
+  operator       String?        @db.VarChar(30)
+  failureCode    String?        @map("failure_code") @db.VarChar(50)
+  failureMessage String?        @map("failure_message") @db.Text
+  status         PurchaseStatus @default(PENDING)
+  createdAt      DateTime       @default(now()) @map("created_at")
 
   user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   book         Book                @relation(fields: [bookId], references: [id], onDelete: Cascade)

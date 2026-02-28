@@ -33,6 +33,11 @@ const envSchema = z.object({
 
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('noreply@papers.app'),
+
+  // Wechango Payment Gateway
+  WECHANGO_API_KEY: z.string().default(''),
+  WECHANGO_BASE_URL: z.string().default('https://api.wechango.seed-innov.com/api/v1'),
+  WECHANGO_WEBHOOK_SECRET: z.string().default(''),
 });
 
 const parsed = envSchema.safeParse(process.env);

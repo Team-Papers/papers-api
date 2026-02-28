@@ -33,6 +33,7 @@ import adminRoutes from './modules/admin/admin.routes';
 import filesRoutes from './modules/files/files.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
 import blogRoutes from './modules/blog/blog.routes';
+import webhookRoutes from './modules/wechango/wechango.routes';
 
 const app = express();
 
@@ -51,6 +52,9 @@ app.use(
   }),
 );
 app.use(cors(corsOptions));
+
+// Webhooks (BEFORE json parsing — needs raw body for signature verification)
+app.use('/api/v1/webhooks', webhookRoutes);
 
 // Parsing
 app.use(express.json({ limit: '10mb' }));

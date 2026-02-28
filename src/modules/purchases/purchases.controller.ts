@@ -22,6 +22,11 @@ export class PurchasesController {
     sendSuccess(res, purchase);
   }
 
+  async getStatus(req: Request, res: Response) {
+    const status = await purchasesService.getStatus(req.user!.userId, req.params.id as string);
+    sendSuccess(res, status);
+  }
+
   async mockComplete(req: Request, res: Response) {
     const purchase = await purchasesService.mockComplete(req.params.id as string);
     sendSuccess(res, purchase);

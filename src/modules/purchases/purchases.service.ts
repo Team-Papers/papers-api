@@ -3,6 +3,8 @@ import { PurchasesRepository } from './purchases.repository';
 import { BadRequestError, ConflictError, NotFoundError } from '../../shared/errors/app-error';
 import { BookStatus, PurchaseStatus } from '../../generated/prisma/enums';
 import { notificationsService } from '../notifications/notifications.service';
+import { wechangoService } from '../wechango/wechango.service';
+import { env } from '../../config/env';
 import type { CreatePurchaseDto } from './purchases.dto';
 import type { PaginationQuery } from '../../shared/utils/pagination';
 
@@ -16,7 +18,10 @@ export class PurchasesService {
   }
 
   async create(userId: string, data: CreatePurchaseDto) {
-    const book = await prisma.book.findUnique({ where: { id: data.bookId } });
+    const book = await prisma.book.findUnique({
+      where: { id: data.bookId },
+      include: { author: { select: { penName: true } } },
+    });
     if (!book || book.status !== BookStatus.PUBLISHED) {
       throw new NotFoundError('Book');
     }
@@ -26,12 +31,72 @@ export class PurchasesService {
       throw new ConflictError('You have already purchased this book');
     }
 
-    return this.purchasesRepository.create(
-      userId,
-      data.bookId,
-      Number(book.price),
-      data.paymentMethod,
-    );
+    // Format phone number with country code if needed
+    const phone = data.phoneNumber.startsWith('+') ? data.phoneNumber : `+237${data.phoneNumber}`;
+
+    // Create purchase in PENDING state
+    const purchase = await prisma.purchase.create({
+      data: {
+        userId,
+        bookId: data.bookId,
+        amount: Number(book.price),
+        paymentMethod: data.paymentMethod,
+        phoneNumber: phone,
+        status: 'PENDING',
+      },
+      include: {
+        book: {
+          select: { id: true, title: true, slug: true, coverUrl: true, price: true },
+        },
+      },
+    });
+
+    // Initiate Wechango payment
+    try {
+      const wechangoPayment = await wechangoService.createPayment(
+        {
+          amount: Number(book.price),
+          currency: 'XAF',
+          customer_phone: phone,
+          country: 'CM',
+          description: `Achat: ${book.title}`,
+          reference: purchase.id,
+          metadata: {
+            purchase_id: purchase.id,
+            book_id: book.id,
+            user_id: userId,
+          },
+        },
+        purchase.id, // Idempotency key = purchase ID
+      );
+
+      // Store Wechango payment ID and detected operator
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: {
+          paymentRef: wechangoPayment.id,
+          operator: wechangoPayment.operator,
+        },
+      });
+
+      return {
+        ...purchase,
+        paymentRef: wechangoPayment.id,
+        operator: wechangoPayment.operator,
+        wechangoStatus: wechangoPayment.status,
+      };
+    } catch (err) {
+      // Mark purchase as failed if Wechango call fails
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: {
+          status: 'FAILED',
+          failureCode: 'INIT_ERROR',
+          failureMessage: err instanceof Error ? err.message : 'Payment initialization failed',
+        },
+      });
+      throw new BadRequestError('Payment initialization failed. Please try again.');
+    }
   }
 
   async getMyPurchases(userId: string, query: PaginationQuery) {
@@ -46,7 +111,34 @@ export class PurchasesService {
     return purchase;
   }
 
+  async getStatus(userId: string, purchaseId: string) {
+    const purchase = await prisma.purchase.findUnique({
+      where: { id: purchaseId },
+      select: {
+        id: true,
+        status: true,
+        failureCode: true,
+        failureMessage: true,
+        createdAt: true,
+      },
+    });
+
+    if (!purchase) {
+      throw new NotFoundError('Purchase');
+    }
+
+    return purchase;
+  }
+
+  /**
+   * Dev/test only: simulate payment completion without Wechango.
+   * Disabled in production.
+   */
   async mockComplete(purchaseId: string) {
+    if (env.NODE_ENV === 'production') {
+      throw new BadRequestError('Mock complete is not available in production');
+    }
+
     const purchase = await this.purchasesRepository.findById(purchaseId);
     if (!purchase) {
       throw new NotFoundError('Purchase');
@@ -56,14 +148,28 @@ export class PurchasesService {
       throw new BadRequestError('Purchase is not pending');
     }
 
-    const amount = Number(purchase.amount);
+    await this.completePurchase(purchase);
+    return this.purchasesRepository.findById(purchaseId);
+  }
+
+  /**
+   * Core completion logic — used by both webhook and mockComplete.
+   */
+  async completePurchase(purchase: {
+    id: string;
+    userId: string;
+    bookId: string;
+    amount: { toNumber?: () => number } | number;
+    book: { authorId: string; title: string; id: string; author?: { userId: string } | null };
+  }) {
+    const amount = typeof purchase.amount === 'number' ? purchase.amount : Number(purchase.amount);
     const commission = amount * COMMISSION_RATE;
     const netAmount = amount - commission;
 
     await prisma.$transaction(async (tx) => {
       await tx.purchase.update({
-        where: { id: purchaseId },
-        data: { status: 'COMPLETED', paymentRef: `MOCK-${Date.now()}` },
+        where: { id: purchase.id },
+        data: { status: 'COMPLETED' },
       });
 
       await tx.userLibrary.create({
@@ -89,15 +195,13 @@ export class PurchasesService {
       });
     });
 
-    // Send notifications after successful transaction
-    // Notify the buyer that their purchase is complete
+    // Notifications
     await notificationsService.notifyPurchaseComplete(
       purchase.userId,
       purchase.book.title,
       purchase.book.id,
     );
 
-    // Notify the author about the new sale
     if (purchase.book.author) {
       await notificationsService.notifyNewSale(
         purchase.book.author.userId,
@@ -106,7 +210,5 @@ export class PurchasesService {
         netAmount,
       );
     }
-
-    return this.purchasesRepository.findById(purchaseId);
   }
 }

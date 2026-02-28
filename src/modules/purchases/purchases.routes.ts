@@ -19,6 +19,11 @@ router.get('/:id', authenticate, (req, res, next) => {
   controller.getById(req, res).catch(next);
 });
 
+// Polling endpoint for mobile (lightweight status check)
+router.get('/:id/status', authenticate, (req, res, next) => {
+  controller.getStatus(req, res).catch(next);
+});
+
 // Dev only: mock payment completion
 router.post('/:id/mock-complete', authenticate, (req, res, next) => {
   controller.mockComplete(req, res).catch(next);
