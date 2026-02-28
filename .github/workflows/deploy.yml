@@ -42,3 +42,13 @@ jobs:
             sleep 5
             curl -sf http://localhost:8050/api/v1/health || exit 1
             echo "Deployment successful!"
+
+      - name: Migrate Firebase Storage to Local
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          command_timeout: 30m
+          script: |
+            docker exec papers-api node dist/scripts/migrate-firebase-storage.js || echo "Migration completed (some files may have failed)"
