@@ -116,6 +116,7 @@ export class PurchasesService {
       where: { id: purchaseId },
       select: {
         id: true,
+        userId: true,
         status: true,
         paymentRef: true,
         failureCode: true,
@@ -124,7 +125,7 @@ export class PurchasesService {
       },
     });
 
-    if (!purchase) {
+    if (!purchase || purchase.userId !== userId) {
       throw new NotFoundError('Purchase');
     }
 
@@ -134,11 +135,19 @@ export class PurchasesService {
         const wechangoPayment = await wechangoService.getPayment(purchase.paymentRef);
 
         if (wechangoPayment.status === 'succeeded') {
-          // Complete the purchase (same as webhook flow)
-          const fullPurchase = await this.purchasesRepository.findById(purchaseId);
-          if (fullPurchase) {
-            await this.completePurchase(fullPurchase);
+          // Re-check status to avoid race condition with webhook
+          const freshPurchase = await prisma.purchase.findUnique({
+            where: { id: purchaseId },
+            select: { status: true },
+          });
+
+          if (freshPurchase?.status === 'PENDING') {
+            const fullPurchase = await this.purchasesRepository.findById(purchaseId);
+            if (fullPurchase) {
+              await this.completePurchase(fullPurchase);
+            }
           }
+
           return {
             id: purchase.id,
             status: 'COMPLETED',
