@@ -33,10 +33,16 @@ export class FilesController {
     try {
       fileStat = fs.statSync(filePath);
     } catch {
+      console.error(
+        `❌ File not found: ${filePath} (fileName: ${payload.fileName}, bookId: ${payload.bookId})`,
+      );
       throw new NotFoundError('File');
     }
 
     if (!fileStat.isFile() || fileStat.size === 0) {
+      console.error(
+        `❌ File invalid: ${filePath} (isFile: ${fileStat.isFile()}, size: ${fileStat.size})`,
+      );
       throw new NotFoundError('File');
     }
 
@@ -145,6 +151,54 @@ export class FilesController {
         downloadUrl: url,
         expiresAt: expiresAt.toISOString(),
         expiresIn: '15 minutes',
+      },
+    });
+  }
+
+  /**
+   * Check storage health - verify published books have their files on disk
+   * GET /api/v1/files/check-storage
+   */
+  async checkStorage(_req: Request, res: Response) {
+    const books = await prisma.book.findMany({
+      where: { status: 'PUBLISHED', fileUrl: { not: null } },
+      select: { id: true, title: true, fileUrl: true, fileFormat: true },
+    });
+
+    const results = books.map((book) => {
+      const filePath = storageService.getBookPath(book.fileUrl!);
+      let exists = false;
+      let size = 0;
+      try {
+        const stat = fs.statSync(filePath);
+        exists = stat.isFile();
+        size = stat.size;
+      } catch {
+        // File doesn't exist
+      }
+      return {
+        id: book.id,
+        title: book.title,
+        fileUrl: book.fileUrl,
+        filePath,
+        exists,
+        size,
+      };
+    });
+
+    const missing = results.filter((r) => !r.exists);
+    const empty = results.filter((r) => r.exists && r.size === 0);
+    const ok = results.filter((r) => r.exists && r.size > 0);
+
+    res.json({
+      success: true,
+      data: {
+        total: results.length,
+        ok: ok.length,
+        missing: missing.length,
+        empty: empty.length,
+        missingFiles: missing,
+        emptyFiles: empty,
       },
     });
   }
