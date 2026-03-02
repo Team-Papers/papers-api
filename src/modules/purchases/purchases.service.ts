@@ -86,7 +86,7 @@ export class PurchasesService {
         operator: wechangoPayment.operator,
         wechangoStatus: wechangoPayment.status,
       };
-    } catch (err) {
+    } catch {
       // Mark purchase as failed if Wechango call fails
       const failureMessage = getUserFriendlyMessage('INIT_ERROR', null);
       await prisma.purchase.update({
