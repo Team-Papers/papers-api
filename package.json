@@ -58,11 +58,11 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "pg": "^8.17.2",
+    "prisma": "^6.19.2",
     "slugify": "^1.6.6",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0",
-    "prisma": "^7.3.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
