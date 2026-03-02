@@ -71,6 +71,10 @@ class WechangoService {
     return res.json() as Promise<WechangoPayment>;
   }
 
+  hasWebhookSecret(): boolean {
+    return !!this.webhookSecret;
+  }
+
   verifyWebhookSignature(rawBody: string, signatureHeader: string): boolean {
     if (!this.webhookSecret || !signatureHeader) return false;
 

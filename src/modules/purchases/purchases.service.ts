@@ -135,17 +135,22 @@ export class PurchasesService {
         const wechangoPayment = await wechangoService.getPayment(purchase.paymentRef);
 
         if (wechangoPayment.status === 'succeeded') {
-          // Re-check status to avoid race condition with webhook
-          const freshPurchase = await prisma.purchase.findUnique({
-            where: { id: purchaseId },
-            select: { status: true },
-          });
+          // Attempt to complete — wrapped in try/catch to handle race with webhook
+          try {
+            const freshPurchase = await prisma.purchase.findUnique({
+              where: { id: purchaseId },
+              select: { status: true },
+            });
 
-          if (freshPurchase?.status === 'PENDING') {
-            const fullPurchase = await this.purchasesRepository.findById(purchaseId);
-            if (fullPurchase) {
-              await this.completePurchase(fullPurchase);
+            if (freshPurchase?.status === 'PENDING') {
+              const fullPurchase = await this.purchasesRepository.findById(purchaseId);
+              if (fullPurchase) {
+                await this.completePurchase(fullPurchase);
+              }
             }
+          } catch (err) {
+            // Race condition with webhook — completePurchase likely ran from webhook
+            console.log(`[getStatus] completePurchase race handled for ${purchaseId}:`, err);
           }
 
           return {

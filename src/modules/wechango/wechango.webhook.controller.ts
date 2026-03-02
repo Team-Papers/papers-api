@@ -11,13 +11,22 @@ export class WechangoWebhookController {
     const signatureHeader = req.headers['wechango-signature'] as string | undefined;
 
     // Verify HMAC signature if webhook secret is configured
-    if (signatureHeader) {
+    if (wechangoService.hasWebhookSecret()) {
+      if (!signatureHeader) {
+        console.error('[Wechango Webhook] Missing signature header');
+        res.status(401).json({ error: 'Missing signature' });
+        return;
+      }
       const isValid = wechangoService.verifyWebhookSignature(rawBody, signatureHeader);
       if (!isValid) {
         console.error('[Wechango Webhook] Invalid signature');
         res.status(401).json({ error: 'Invalid signature' });
         return;
       }
+    } else {
+      console.warn(
+        '[Wechango Webhook] No webhook secret configured — skipping signature verification',
+      );
     }
 
     const event = wechangoService.parseWebhookEvent(rawBody);
