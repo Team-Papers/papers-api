@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../../config/database';
 import { wechangoService } from './wechango.service';
+import { getUserFriendlyMessage } from './wechango.types';
 import { notificationsService } from '../notifications/notifications.service';
 
 const COMMISSION_RATE = 0.3;
@@ -140,17 +141,20 @@ export class WechangoWebhookController {
       return;
     }
 
+    const code = failureCode ?? 'PAYMENT_FAILED';
+    const message = getUserFriendlyMessage(code, failureMessage);
+
     await prisma.purchase.update({
       where: { id: purchase.id },
       data: {
         status: 'FAILED',
-        failureCode: failureCode ?? null,
-        failureMessage: failureMessage ?? null,
+        failureCode: code,
+        failureMessage: message,
       },
     });
 
     console.log(
-      `[Wechango Webhook] Purchase ${purchase.id} failed: ${failureCode} — ${failureMessage}`,
+      `[Wechango Webhook] Purchase ${purchase.id} failed: ${code} — ${message}`,
     );
   }
 }

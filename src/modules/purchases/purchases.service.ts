@@ -4,6 +4,7 @@ import { BadRequestError, ConflictError, NotFoundError } from '../../shared/erro
 import { BookStatus, PurchaseStatus } from '../../generated/prisma/enums';
 import { notificationsService } from '../notifications/notifications.service';
 import { wechangoService } from '../wechango/wechango.service';
+import { getUserFriendlyMessage } from '../wechango/wechango.types';
 import { env } from '../../config/env';
 import type { CreatePurchaseDto } from './purchases.dto';
 import type { PaginationQuery } from '../../shared/utils/pagination';
@@ -87,15 +88,16 @@ export class PurchasesService {
       };
     } catch (err) {
       // Mark purchase as failed if Wechango call fails
+      const failureMessage = getUserFriendlyMessage('INIT_ERROR', null);
       await prisma.purchase.update({
         where: { id: purchase.id },
         data: {
           status: 'FAILED',
           failureCode: 'INIT_ERROR',
-          failureMessage: err instanceof Error ? err.message : 'Payment initialization failed',
+          failureMessage,
         },
       });
-      throw new BadRequestError('Payment initialization failed. Please try again.');
+      throw new BadRequestError(failureMessage);
     }
   }
 
@@ -163,19 +165,21 @@ export class PurchasesService {
         }
 
         if (wechangoPayment.status === 'failed' || wechangoPayment.status === 'cancelled') {
+          const code = wechangoPayment.failure_code ?? 'PAYMENT_FAILED';
+          const message = getUserFriendlyMessage(code, wechangoPayment.failure_message);
           await prisma.purchase.update({
             where: { id: purchaseId },
             data: {
               status: 'FAILED',
-              failureCode: wechangoPayment.failure_code ?? 'PAYMENT_FAILED',
-              failureMessage: wechangoPayment.failure_message ?? 'Le paiement a echoue.',
+              failureCode: code,
+              failureMessage: message,
             },
           });
           return {
             id: purchase.id,
             status: 'FAILED',
-            failureCode: wechangoPayment.failure_code ?? 'PAYMENT_FAILED',
-            failureMessage: wechangoPayment.failure_message ?? 'Le paiement a echoue.',
+            failureCode: code,
+            failureMessage: message,
             createdAt: purchase.createdAt,
           };
         }
