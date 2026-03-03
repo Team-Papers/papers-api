@@ -58,13 +58,21 @@ export class BlogRepository {
       ];
     }
 
+    const dir = query.direction ?? 'desc';
+    const articlesOrderBy: Record<string, string> =
+      query.orderBy === 'title'
+        ? { title: dir }
+        : query.orderBy === 'publishedAt'
+          ? { publishedAt: dir }
+          : { createdAt: dir };
+
     const skip = (query.page - 1) * query.limit;
     const [items, total] = await Promise.all([
       prisma.article.findMany({
         where,
         skip,
         take: query.limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: articlesOrderBy,
         include: { _count: { select: { likes: true } } },
       }),
       prisma.article.count({ where }),

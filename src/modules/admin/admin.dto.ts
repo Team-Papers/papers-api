@@ -22,7 +22,7 @@ export const adminAuthorsQueryDto = z.object({
 export const adminBooksQueryDto = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(['DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'PUBLISHED']).optional(),
+  status: z.enum(['DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'PUBLISHED', 'SUSPENDED']).optional(),
   q: z.string().optional(),
   orderBy: z.string().optional(),
   direction: z.enum(['asc', 'desc']).optional().default('desc'),
@@ -79,6 +79,8 @@ export const adminReviewsQueryDto = z.object({
   q: z.string().optional(),
   bookId: z.string().optional(),
   userId: z.string().optional(),
+  orderBy: z.string().optional(),
+  direction: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export type CreateCategoryDto = z.infer<typeof createCategoryDto>;

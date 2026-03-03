@@ -23,6 +23,8 @@ export const listArticlesDto = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   q: z.string().min(1).optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
+  orderBy: z.string().optional(),
+  direction: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export type CreateArticleDto = z.infer<typeof createArticleDto>;

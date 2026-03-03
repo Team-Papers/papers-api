@@ -551,7 +551,12 @@ export class AdminRepository {
     });
   }
 
-  async updateBookStatus(id: string, status: string, rejectionReason?: string, suspensionReason?: string) {
+  async updateBookStatus(
+    id: string,
+    status: string,
+    rejectionReason?: string,
+    suspensionReason?: string,
+  ) {
     // Get current book to handle rejection history
     const currentBook = await prisma.book.findUnique({
       where: { id },
@@ -615,8 +620,9 @@ export class AdminRepository {
 
   // Reviews
   async findReviews(query: AdminReviewsQueryDto) {
-    const { page, limit, status, q, bookId, userId } = query;
+    const { page, limit, status, q, bookId, userId, orderBy, direction } = query;
     const skip = (page - 1) * limit;
+    const dir = direction ?? 'desc';
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
@@ -631,12 +637,15 @@ export class AdminRepository {
       ];
     }
 
+    const reviewsOrderBy: Record<string, string> =
+      orderBy === 'rating' ? { rating: dir } : { createdAt: dir };
+
     const [reviews, total] = await Promise.all([
       prisma.review.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: reviewsOrderBy,
         include: {
           user: {
             select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true },
