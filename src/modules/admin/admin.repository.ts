@@ -88,7 +88,7 @@ export class AdminRepository {
         LIMIT 5
       `,
 
-      // Top 5 authors by revenue (use raw query since no totalRevenue field)
+      // Top 5 authors by revenue (subqueries to avoid cross product)
       prisma.$queryRaw<
         {
           id: string;
@@ -103,14 +103,23 @@ export class AdminRepository {
       >`
         SELECT ap.id, ap.pen_name, ap.photo_url,
                u.first_name, u.last_name, u.avatar_url,
-               COALESCE(SUM(at.amount), 0)::int as total_revenue,
-               COUNT(DISTINCT b.id)::int as total_books
+               COALESCE(rev.total_revenue, 0)::int as total_revenue,
+               COALESCE(bc.total_books, 0)::int as total_books
         FROM author_profiles ap
         JOIN users u ON u.id = ap.user_id
-        LEFT JOIN author_transactions at ON at.author_id = ap.id AND at.type = 'SALE' AND at.status = 'COMPLETED'
-        LEFT JOIN books b ON b.author_id = ap.id AND b.status = 'PUBLISHED'
+        LEFT JOIN (
+          SELECT author_id, SUM(amount)::int as total_revenue
+          FROM author_transactions
+          WHERE type = 'SALE' AND status = 'COMPLETED'
+          GROUP BY author_id
+        ) rev ON rev.author_id = ap.id
+        LEFT JOIN (
+          SELECT author_id, COUNT(*)::int as total_books
+          FROM books
+          WHERE status = 'PUBLISHED'
+          GROUP BY author_id
+        ) bc ON bc.author_id = ap.id
         WHERE ap.status = 'APPROVED'
-        GROUP BY ap.id, ap.pen_name, ap.photo_url, u.first_name, u.last_name, u.avatar_url
         ORDER BY total_revenue DESC
         LIMIT 5
       `,
@@ -251,8 +260,12 @@ export class AdminRepository {
 
   // Users
   async findUsers(query: AdminUsersQueryDto) {
-    const { page, limit, q, role, status } = query;
+    const { page, limit, q, role, status, orderBy, direction } = query;
     const skip = (page - 1) * limit;
+    const dir = direction ?? 'desc';
+
+    const usersOrderBy: Record<string, string> =
+      orderBy === 'firstName' ? { firstName: dir } : { createdAt: dir };
 
     const where: Record<string, unknown> = {};
     if (role) where.role = role;
@@ -270,7 +283,7 @@ export class AdminRepository {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: usersOrderBy,
         select: {
           id: true,
           email: true,
@@ -327,8 +340,12 @@ export class AdminRepository {
 
   // Authors
   async findAuthors(query: AdminAuthorsQueryDto) {
-    const { page, limit, status, q } = query;
+    const { page, limit, status, q, orderBy, direction } = query;
     const skip = (page - 1) * limit;
+    const dir = direction ?? 'desc';
+
+    const authorsOrderBy: Record<string, string> =
+      orderBy === 'penName' ? { penName: dir } : { createdAt: dir };
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
@@ -345,7 +362,7 @@ export class AdminRepository {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: authorsOrderBy,
         include: {
           user: {
             select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true },
@@ -457,8 +474,18 @@ export class AdminRepository {
 
   // Books
   async findBooks(query: AdminBooksQueryDto) {
-    const { page, limit, status, q } = query;
+    const { page, limit, status, q, orderBy, direction } = query;
     const skip = (page - 1) * limit;
+    const dir = direction ?? 'desc';
+
+    let booksOrderBy: Record<string, string>;
+    if (orderBy === 'price') {
+      booksOrderBy = { price: dir };
+    } else if (orderBy === 'title') {
+      booksOrderBy = { title: dir };
+    } else {
+      booksOrderBy = { createdAt: dir };
+    }
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
@@ -474,7 +501,7 @@ export class AdminRepository {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: booksOrderBy,
         include: {
           author: {
             select: {
@@ -641,8 +668,12 @@ export class AdminRepository {
 
   // Transactions
   async findTransactions(query: AdminTransactionsQueryDto) {
-    const { page, limit, type, status, q } = query;
+    const { page, limit, type, status, q, orderBy, direction } = query;
     const skip = (page - 1) * limit;
+    const dir = direction ?? 'desc';
+
+    const transactionsOrderBy: Record<string, string> =
+      orderBy === 'amount' ? { amount: dir } : { createdAt: dir };
 
     const where: Record<string, unknown> = {};
     if (type) where.type = type;
@@ -663,7 +694,7 @@ export class AdminRepository {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: transactionsOrderBy,
         include: {
           author: {
             select: {

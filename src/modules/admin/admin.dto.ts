@@ -6,6 +6,8 @@ export const adminUsersQueryDto = z.object({
   q: z.string().optional(),
   role: z.enum(['READER', 'AUTHOR', 'ADMIN']).optional(),
   status: z.enum(['ACTIVE', 'SUSPENDED', 'BANNED']).optional(),
+  orderBy: z.string().optional(),
+  direction: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export const adminAuthorsQueryDto = z.object({
@@ -13,6 +15,8 @@ export const adminAuthorsQueryDto = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
   q: z.string().optional(),
+  orderBy: z.string().optional(),
+  direction: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export const adminBooksQueryDto = z.object({
@@ -20,6 +24,8 @@ export const adminBooksQueryDto = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(['DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'PUBLISHED']).optional(),
   q: z.string().optional(),
+  orderBy: z.string().optional(),
+  direction: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export const adminTransactionsQueryDto = z.object({
@@ -28,6 +34,8 @@ export const adminTransactionsQueryDto = z.object({
   type: z.enum(['SALE', 'WITHDRAWAL']).optional(),
   status: z.enum(['PENDING', 'COMPLETED', 'FAILED']).optional(),
   q: z.string().optional(),
+  orderBy: z.string().optional(),
+  direction: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export const rejectBookDto = z.object({
