@@ -551,7 +551,7 @@ export class AdminRepository {
     });
   }
 
-  async updateBookStatus(id: string, status: string, rejectionReason?: string) {
+  async updateBookStatus(id: string, status: string, rejectionReason?: string, suspensionReason?: string) {
     // Get current book to handle rejection history
     const currentBook = await prisma.book.findUnique({
       where: { id },
@@ -562,8 +562,9 @@ export class AdminRepository {
 
     if (status === 'PUBLISHED') {
       data.publishedAt = new Date();
-      // Clear rejection reason when approving, but keep history
+      // Clear admin-set reasons when re-publishing
       data.rejectionReason = null;
+      data.suspensionReason = null;
     }
 
     if (rejectionReason) {
@@ -576,6 +577,10 @@ export class AdminRepository {
       });
       data.rejectionHistory = history;
       data.rejectionReason = rejectionReason;
+    }
+
+    if (suspensionReason) {
+      data.suspensionReason = suspensionReason;
     }
 
     return prisma.book.update({ where: { id }, data });

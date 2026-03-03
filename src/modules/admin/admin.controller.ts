@@ -116,7 +116,7 @@ export class AdminController {
   }
 
   async suspendBook(req: Request, res: Response) {
-    const book = await adminService.suspendBook(req.params.id as string);
+    const book = await adminService.suspendBook(req.params.id as string, req.body.reason);
     sendSuccess(res, book);
   }
 

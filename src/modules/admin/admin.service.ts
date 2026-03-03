@@ -176,8 +176,15 @@ export class AdminService {
     return result;
   }
 
-  async suspendBook(id: string) {
-    return this.adminRepository.updateBookStatus(id, 'SUSPENDED');
+  async suspendBook(id: string, reason: string) {
+    const book = await this.adminRepository.findBookById(id);
+    if (!book) throw new NotFoundError('Book');
+
+    const result = await this.adminRepository.updateBookStatus(id, 'SUSPENDED', undefined, reason);
+
+    await notificationsService.notifyBookSuspended(book.author.user.id, book.title, book.id, reason);
+
+    return result;
   }
 
   async unsuspendBook(id: string) {

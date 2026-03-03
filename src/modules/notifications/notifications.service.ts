@@ -57,6 +57,16 @@ export class NotificationsService {
     });
   }
 
+  async notifyBookSuspended(userId: string, bookTitle: string, bookId: string, reason: string) {
+    return this.notificationsRepository.create({
+      userId,
+      type: NotificationType.BOOK_SUSPENDED,
+      title: 'Livre suspendu',
+      message: `Votre livre "${bookTitle}" a été suspendu. Motif : ${reason}`,
+      data: { bookId, reason },
+    });
+  }
+
   async notifyBookSubmitted(
     adminUserIds: string[],
     bookTitle: string,
