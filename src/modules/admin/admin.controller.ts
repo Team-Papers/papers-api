@@ -120,6 +120,11 @@ export class AdminController {
     sendSuccess(res, book);
   }
 
+  async unsuspendBook(req: Request, res: Response) {
+    const book = await adminService.unsuspendBook(req.params.id as string);
+    sendSuccess(res, book);
+  }
+
   async getBookDownloadLink(req: Request, res: Response) {
     const result = await adminService.getBookDownloadLink(
       req.params.id as string,

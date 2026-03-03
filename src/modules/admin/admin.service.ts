@@ -177,7 +177,11 @@ export class AdminService {
   }
 
   async suspendBook(id: string) {
-    return this.adminRepository.updateBookStatus(id, 'DRAFT');
+    return this.adminRepository.updateBookStatus(id, 'SUSPENDED');
+  }
+
+  async unsuspendBook(id: string) {
+    return this.adminRepository.updateBookStatus(id, 'PUBLISHED');
   }
 
   async getBookDownloadLink(bookId: string, adminUserId: string) {

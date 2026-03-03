@@ -192,6 +192,7 @@ enum BookStatus {
   APPROVED
   REJECTED
   PUBLISHED
+  SUSPENDED
 }
 
 // ==========================================
