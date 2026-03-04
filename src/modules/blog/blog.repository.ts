@@ -1,5 +1,10 @@
 import prisma from '../../config/database';
-import type { CreateArticleDto, UpdateArticleDto, ListArticlesDto } from './blog.dto';
+import type {
+  CreateArticleDto,
+  UpdateArticleDto,
+  ListArticlesDto,
+  AddCommentDto,
+} from './blog.dto';
 
 export class BlogRepository {
   async create(data: CreateArticleDto, slug: string) {
@@ -130,5 +135,32 @@ export class BlogRepository {
       where: { articleId_userId: { articleId, userId } },
     });
     return !!like;
+  }
+
+  async getComments(articleId: string) {
+    return prisma.articleComment.findMany({
+      where: { articleId },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  async addComment(articleId: string, userId: string, data: AddCommentDto) {
+    return prisma.articleComment.create({
+      data: { content: data.content, articleId, userId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  async deleteComment(commentId: string, userId: string) {
+    const comment = await prisma.articleComment.findUnique({ where: { id: commentId } });
+    if (!comment) return null;
+    if (comment.userId !== userId) return false;
+    await prisma.articleComment.delete({ where: { id: commentId } });
+    return true;
   }
 }

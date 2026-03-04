@@ -1,7 +1,12 @@
 import { BlogRepository } from './blog.repository';
-import { NotFoundError } from '../../shared/errors/app-error';
+import { NotFoundError, ForbiddenError } from '../../shared/errors/app-error';
 import { generateSlug } from '../../shared/utils/slug';
-import type { CreateArticleDto, UpdateArticleDto, ListArticlesDto } from './blog.dto';
+import type {
+  CreateArticleDto,
+  UpdateArticleDto,
+  ListArticlesDto,
+  AddCommentDto,
+} from './blog.dto';
 
 export class BlogService {
   private repo: BlogRepository;
@@ -66,5 +71,24 @@ export class BlogService {
 
   async hasUserLiked(articleId: string, userId: string) {
     return this.repo.hasUserLiked(articleId, userId);
+  }
+
+  async getComments(articleId: string) {
+    const article = await this.repo.findById(articleId);
+    if (!article) throw new NotFoundError('Article');
+    return this.repo.getComments(articleId);
+  }
+
+  async addComment(articleId: string, userId: string, data: AddCommentDto) {
+    const article = await this.repo.findById(articleId);
+    if (!article || article.status !== 'PUBLISHED') throw new NotFoundError('Article');
+    return this.repo.addComment(articleId, userId, data);
+  }
+
+  async deleteComment(articleId: string, commentId: string, userId: string) {
+    const result = await this.repo.deleteComment(commentId, userId);
+    if (result === null) throw new NotFoundError('Comment');
+    if (result === false) throw new ForbiddenError('You can only delete your own comments');
+    return true;
   }
 }

@@ -27,6 +27,11 @@ export const listArticlesDto = z.object({
   direction: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
+export const addCommentDto = z.object({
+  content: z.string().min(1, 'Content is required').max(500),
+});
+
 export type CreateArticleDto = z.infer<typeof createArticleDto>;
 export type UpdateArticleDto = z.infer<typeof updateArticleDto>;
 export type ListArticlesDto = z.infer<typeof listArticlesDto>;
+export type AddCommentDto = z.infer<typeof addCommentDto>;

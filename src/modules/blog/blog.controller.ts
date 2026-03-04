@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { BlogService } from './blog.service';
 import { sendSuccess } from '../../shared/utils/response';
-import { listArticlesDto } from './blog.dto';
+import { listArticlesDto, addCommentDto } from './blog.dto';
 
 const blogService = new BlogService();
 
@@ -75,5 +75,25 @@ export class BlogController {
   async toggleLike(req: Request, res: Response) {
     const result = await blogService.toggleLike(req.params.id as string, req.user!.userId);
     sendSuccess(res, result);
+  }
+
+  async getComments(req: Request, res: Response) {
+    const comments = await blogService.getComments(req.params.id as string);
+    sendSuccess(res, comments);
+  }
+
+  async addComment(req: Request, res: Response) {
+    const data = addCommentDto.parse(req.body);
+    const comment = await blogService.addComment(req.params.id as string, req.user!.userId, data);
+    sendSuccess(res, comment, 201);
+  }
+
+  async deleteComment(req: Request, res: Response) {
+    await blogService.deleteComment(
+      req.params.id as string,
+      req.params.commentId as string,
+      req.user!.userId,
+    );
+    sendSuccess(res, { message: 'Comment deleted' });
   }
 }

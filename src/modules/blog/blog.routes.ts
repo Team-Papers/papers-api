@@ -28,6 +28,21 @@ router.post('/:id/like', authenticate, (req, res, next) => {
   controller.toggleLike(req, res).catch(next);
 });
 
+// GET /blog/:id/comments - Get article comments (public)
+router.get('/:id/comments', (req, res, next) => {
+  controller.getComments(req, res).catch(next);
+});
+
+// POST /blog/:id/comments - Add comment (authenticated)
+router.post('/:id/comments', authenticate, (req, res, next) => {
+  controller.addComment(req, res).catch(next);
+});
+
+// DELETE /blog/:id/comments/:commentId - Delete own comment (authenticated)
+router.delete('/:id/comments/:commentId', authenticate, (req, res, next) => {
+  controller.deleteComment(req, res).catch(next);
+});
+
 // ---- Admin routes ----
 
 // GET /blog/admin - All articles (any status)
