@@ -112,6 +112,18 @@ export class BooksService {
     return this.booksRepository.updateStatus(bookId, BookStatus.PENDING);
   }
 
+  async getTrending() {
+    return this.booksRepository.findTrending();
+  }
+
+  async getNew() {
+    return this.booksRepository.findNew();
+  }
+
+  async getRecommended() {
+    return this.booksRepository.findRecommended();
+  }
+
   async getCatalogue(query: SearchBooksDto) {
     return this.booksRepository.findPublished(query);
   }

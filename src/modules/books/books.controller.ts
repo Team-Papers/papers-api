@@ -44,6 +44,21 @@ export class BooksController {
     sendPaginated(res, books, { page: query.page, limit: query.limit, total });
   }
 
+  async getTrending(req: Request, res: Response) {
+    const books = await booksService.getTrending();
+    sendSuccess(res, books);
+  }
+
+  async getNew(req: Request, res: Response) {
+    const books = await booksService.getNew();
+    sendSuccess(res, books);
+  }
+
+  async getRecommended(req: Request, res: Response) {
+    const books = await booksService.getRecommended();
+    sendSuccess(res, books);
+  }
+
   async getById(req: Request, res: Response) {
     const book = await booksService.getById(req.params.id as string);
     sendSuccess(res, book);

@@ -18,6 +18,18 @@ router.get('/search', (req, res, next) => {
   controller.search(req, res).catch(next);
 });
 
+router.get('/trending', (req, res, next) => {
+  controller.getTrending(req, res).catch(next);
+});
+
+router.get('/new', (req, res, next) => {
+  controller.getNew(req, res).catch(next);
+});
+
+router.get('/recommended', (req, res, next) => {
+  controller.getRecommended(req, res).catch(next);
+});
+
 // Authenticated author routes (must be before /:id)
 router.get('/me', authenticate, (req, res, next) => {
   controller.getMyBooks(req, res).catch(next);

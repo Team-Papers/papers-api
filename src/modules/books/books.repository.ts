@@ -208,6 +208,46 @@ export class BooksRepository {
     return { books, total };
   }
 
+  private get publishedBookInclude() {
+    return {
+      author: {
+        select: {
+          id: true,
+          penName: true,
+          user: { select: { firstName: true, lastName: true, avatarUrl: true } },
+        },
+      },
+      _count: { select: { reviews: true } },
+    };
+  }
+
+  async findTrending(limit = 10) {
+    return prisma.book.findMany({
+      where: { status: 'PUBLISHED' },
+      take: limit,
+      orderBy: [{ purchases: { _count: 'desc' } }, { rating: 'desc' }],
+      include: this.publishedBookInclude,
+    });
+  }
+
+  async findNew(limit = 10) {
+    return prisma.book.findMany({
+      where: { status: 'PUBLISHED' },
+      take: limit,
+      orderBy: { publishedAt: 'desc' },
+      include: this.publishedBookInclude,
+    });
+  }
+
+  async findRecommended(limit = 10) {
+    return prisma.book.findMany({
+      where: { status: 'PUBLISHED' },
+      take: limit,
+      orderBy: { rating: 'desc' },
+      include: this.publishedBookInclude,
+    });
+  }
+
   async countCategories(bookId: string) {
     return prisma.bookCategory.count({ where: { bookId } });
   }
