@@ -125,6 +125,16 @@ export class AdminController {
     sendSuccess(res, book);
   }
 
+  async unpublishBook(req: Request, res: Response) {
+    const book = await adminService.unpublishBook(req.params.id as string);
+    sendSuccess(res, book);
+  }
+
+  async deleteBook(req: Request, res: Response) {
+    await adminService.deleteBook(req.params.id as string);
+    sendSuccess(res, { message: 'Book deleted successfully' });
+  }
+
   async getBookDownloadLink(req: Request, res: Response) {
     const result = await adminService.getBookDownloadLink(
       req.params.id as string,

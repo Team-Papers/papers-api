@@ -105,6 +105,14 @@ router.put('/books/:id/unsuspend', (req, res, next) => {
   controller.unsuspendBook(req, res).catch(next);
 });
 
+router.put('/books/:id/unpublish', (req, res, next) => {
+  controller.unpublishBook(req, res).catch(next);
+});
+
+router.delete('/books/:id', (req, res, next) => {
+  controller.deleteBook(req, res).catch(next);
+});
+
 router.get('/books/:id/download-link', (req, res, next) => {
   controller.getBookDownloadLink(req, res).catch(next);
 });

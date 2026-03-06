@@ -595,6 +595,10 @@ export class AdminRepository {
     return prisma.user.delete({ where: { id } });
   }
 
+  async deleteBook(id: string) {
+    return prisma.book.delete({ where: { id } });
+  }
+
   // Categories CRUD
   async findAllCategories() {
     return prisma.category.findMany({

@@ -182,13 +182,32 @@ export class AdminService {
 
     const result = await this.adminRepository.updateBookStatus(id, 'SUSPENDED', undefined, reason);
 
-    await notificationsService.notifyBookSuspended(book.author.user.id, book.title, book.id, reason);
+    await notificationsService.notifyBookSuspended(
+      book.author.user.id,
+      book.title,
+      book.id,
+      reason,
+    );
 
     return result;
   }
 
   async unsuspendBook(id: string) {
     return this.adminRepository.updateBookStatus(id, 'PUBLISHED');
+  }
+
+  async unpublishBook(id: string) {
+    const book = await this.adminRepository.findBookById(id);
+    if (!book) throw new NotFoundError('Book');
+    if (book.status !== 'PUBLISHED')
+      throw new BadRequestError('Only published books can be unpublished');
+    return this.adminRepository.updateBookStatus(id, 'DRAFT');
+  }
+
+  async deleteBook(id: string) {
+    const book = await this.adminRepository.findBookById(id);
+    if (!book) throw new NotFoundError('Book');
+    return this.adminRepository.deleteBook(id);
   }
 
   async getBookDownloadLink(bookId: string, adminUserId: string) {
