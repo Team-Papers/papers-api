@@ -225,7 +225,7 @@ export class BooksRepository {
     return prisma.book.findMany({
       where: { status: 'PUBLISHED' },
       take: limit,
-      orderBy: [{ purchases: { _count: 'desc' } }, { rating: 'desc' }],
+      orderBy: [{ purchases: { _count: 'desc' } }, { reviews: { _count: 'desc' } }],
       include: this.publishedBookInclude,
     });
   }
@@ -243,7 +243,7 @@ export class BooksRepository {
     return prisma.book.findMany({
       where: { status: 'PUBLISHED' },
       take: limit,
-      orderBy: { rating: 'desc' },
+      orderBy: { reviews: { _count: 'desc' } },
       include: this.publishedBookInclude,
     });
   }
@@ -298,7 +298,7 @@ export class BooksRepository {
     return prisma.book.findMany({
       where,
       take: limit,
-      orderBy: [{ rating: 'desc' }, { purchases: { _count: 'desc' } }],
+      orderBy: [{ reviews: { _count: 'desc' } }, { purchases: { _count: 'desc' } }],
       include: this.publishedBookInclude,
     });
   }
