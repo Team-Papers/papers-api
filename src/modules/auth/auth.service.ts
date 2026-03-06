@@ -111,29 +111,34 @@ export class AuthService {
       throw new BadRequestError('Google account must have an email');
     }
 
-    let user = await this.authRepository.findUserByGoogleId(uid);
+    let user;
+    try {
+      user = await this.authRepository.findUserByGoogleId(uid);
 
-    if (!user) {
-      const existingUser = await this.authRepository.findUserByEmail(email);
-      if (existingUser) {
-        // Link Google account to existing user
-        await this.authRepository.updateUser(existingUser.id, {
-          googleId: uid,
-          emailVerified: true,
-          avatarUrl: existingUser.avatarUrl || picture,
-        });
-        user = (await this.authRepository.findUserByEmail(email))!;
-      } else {
-        const nameParts = (name || '').split(' ');
-        user = await this.authRepository.createUser({
-          email,
-          googleId: uid,
-          firstName: nameParts[0] || '',
-          lastName: nameParts.slice(1).join(' ') || '',
-          avatarUrl: picture,
-          emailVerified: true,
-        });
+      if (!user) {
+        const existingUser = await this.authRepository.findUserByEmail(email);
+        if (existingUser) {
+          // Link Google account to existing user
+          await this.authRepository.updateUser(existingUser.id, {
+            googleId: uid,
+            emailVerified: true,
+            avatarUrl: existingUser.avatarUrl || picture,
+          });
+          user = (await this.authRepository.findUserByEmail(email))!;
+        } else {
+          const nameParts = (name || '').split(' ');
+          user = await this.authRepository.createUser({
+            email,
+            googleId: uid,
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            avatarUrl: picture,
+            emailVerified: true,
+          });
+        }
       }
+    } catch (err: any) {
+      throw new BadRequestError(`Google auth DB error: ${err.code || err.message}`);
     }
 
     if (user.status !== UserStatus.ACTIVE) {
