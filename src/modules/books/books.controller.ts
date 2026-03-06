@@ -32,6 +32,11 @@ export class BooksController {
     sendSuccess(res, book);
   }
 
+  async unpublish(req: Request, res: Response) {
+    const book = await booksService.unpublish(req.user!.userId, req.params.id as string);
+    sendSuccess(res, book);
+  }
+
   async getCatalogue(req: Request, res: Response) {
     const query = searchBooksDto.parse(req.query);
     const { books, total } = await booksService.getCatalogue(query);

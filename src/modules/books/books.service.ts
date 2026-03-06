@@ -61,10 +61,6 @@ export class BooksService {
       throw new ForbiddenError('You can only delete your own books');
     }
 
-    if (book.status === BookStatus.PUBLISHED) {
-      throw new BadRequestError('Cannot delete a published book');
-    }
-
     return this.booksRepository.delete(bookId);
   }
 
@@ -75,6 +71,28 @@ export class BooksService {
     }
 
     return this.booksRepository.findByAuthorId(author.id, query);
+  }
+
+  async unpublish(userId: string, bookId: string) {
+    const author = await this.authorsRepository.findByUserId(userId);
+    if (!author) {
+      throw new ForbiddenError('Author profile not found');
+    }
+
+    const book = await this.booksRepository.findById(bookId);
+    if (!book) {
+      throw new NotFoundError('Book');
+    }
+
+    if (book.authorId !== author.id) {
+      throw new ForbiddenError('You can only unpublish your own books');
+    }
+
+    if (book.status !== BookStatus.PUBLISHED) {
+      throw new BadRequestError('Only published books can be unpublished');
+    }
+
+    return this.booksRepository.updateStatus(bookId, BookStatus.DRAFT);
   }
 
   async submit(userId: string, bookId: string) {

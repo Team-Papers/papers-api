@@ -61,6 +61,10 @@ router.post('/:id/submit', authenticate, (req, res, next) => {
   controller.submit(req, res).catch(next);
 });
 
+router.post('/:id/unpublish', authenticate, (req, res, next) => {
+  controller.unpublish(req, res).catch(next);
+});
+
 router.get('/:id/download', authenticate, (req, res, next) => {
   libraryController.getDownloadUrl(req, res).catch(next);
 });
