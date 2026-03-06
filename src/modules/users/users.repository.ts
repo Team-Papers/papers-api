@@ -49,4 +49,20 @@ export class UsersRepository {
   async delete(id: string) {
     return prisma.user.delete({ where: { id } });
   }
+
+  async syncInterests(userId: string, categoryIds: string[]) {
+    await prisma.userInterest.deleteMany({ where: { userId } });
+    if (categoryIds.length > 0) {
+      await prisma.userInterest.createMany({
+        data: categoryIds.map((categoryId) => ({ userId, categoryId })),
+      });
+    }
+  }
+
+  async getInterests(userId: string) {
+    return prisma.userInterest.findMany({
+      where: { userId },
+      select: { categoryId: true },
+    });
+  }
 }

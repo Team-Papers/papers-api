@@ -42,4 +42,8 @@ export class UsersService {
 
     await this.usersRepository.delete(id);
   }
+
+  async syncInterests(userId: string, categoryIds: string[]) {
+    return this.usersRepository.syncInterests(userId, categoryIds);
+  }
 }

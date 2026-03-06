@@ -99,7 +99,12 @@ export class AuthService {
       throw new BadRequestError('Google authentication is not configured');
     }
 
-    const decodedToken = await firebaseAuth.verifyIdToken(data.idToken);
+    let decodedToken;
+    try {
+      decodedToken = await firebaseAuth.verifyIdToken(data.idToken);
+    } catch (err: any) {
+      throw new BadRequestError(`Invalid Google token: ${err.code || err.message}`);
+    }
     const { uid, email, name, picture } = decodedToken;
 
     if (!email) {

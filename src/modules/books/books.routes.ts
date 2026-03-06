@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { BooksController } from './books.controller';
 import { LibraryController } from '../library/library.controller';
-import { authenticate } from '../../shared/middleware/auth.middleware';
+import { authenticate, optionalAuthenticate } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
 import { createBookDto, updateBookDto } from './books.dto';
 
@@ -26,7 +26,7 @@ router.get('/new', (req, res, next) => {
   controller.getNew(req, res).catch(next);
 });
 
-router.get('/recommended', (req, res, next) => {
+router.get('/recommended', optionalAuthenticate, (req, res, next) => {
   controller.getRecommended(req, res).catch(next);
 });
 

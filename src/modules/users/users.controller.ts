@@ -11,12 +11,21 @@ export class UsersController {
   }
 
   async updateProfile(req: Request, res: Response) {
-    const user = await usersService.updateProfile(req.params.id as string, req.body, req.user!.userId);
+    const user = await usersService.updateProfile(
+      req.params.id as string,
+      req.body,
+      req.user!.userId,
+    );
     sendSuccess(res, user);
   }
 
   async deleteAccount(req: Request, res: Response) {
     await usersService.deleteAccount(req.params.id as string, req.user!.userId);
     sendSuccess(res, { message: 'Account deleted successfully' });
+  }
+
+  async syncInterests(req: Request, res: Response) {
+    await usersService.syncInterests(req.user!.userId, req.body.categoryIds);
+    sendSuccess(res, { message: 'Interests synced successfully' });
   }
 }

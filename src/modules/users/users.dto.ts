@@ -7,3 +7,9 @@ export const updateUserDto = z.object({
 });
 
 export type UpdateUserDto = z.infer<typeof updateUserDto>;
+
+export const syncInterestsDto = z.object({
+  categoryIds: z.array(z.string().uuid()).min(1).max(5),
+});
+
+export type SyncInterestsDto = z.infer<typeof syncInterestsDto>;

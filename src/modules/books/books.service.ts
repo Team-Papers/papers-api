@@ -120,7 +120,10 @@ export class BooksService {
     return this.booksRepository.findNew();
   }
 
-  async getRecommended() {
+  async getRecommended(userId?: string) {
+    if (userId) {
+      return this.booksRepository.findPersonalizedRecommended(userId);
+    }
     return this.booksRepository.findRecommended();
   }
 

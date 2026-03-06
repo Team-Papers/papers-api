@@ -37,6 +37,7 @@ model User {
   favorites        Favorite[]
   articleLikes    ArticleLike[]
   articleComments ArticleComment[]
+  interests       UserInterest[]
 
   @@map("users")
 }
@@ -138,9 +139,10 @@ model Category {
   orderIndex  Int        @default(0) @map("order_index")
   createdAt   DateTime   @default(now()) @map("created_at")
 
-  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children Category[] @relation("CategoryTree")
-  books    BookCategory[]
+  parent        Category?      @relation("CategoryTree", fields: [parentId], references: [id])
+  children      Category[]     @relation("CategoryTree")
+  books         BookCategory[]
+  userInterests UserInterest[]
 
   @@map("categories")
 }
@@ -545,6 +547,24 @@ enum ArticleStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+// ==========================================
+// USER INTERESTS (Many-to-Many)
+// ==========================================
+
+model UserInterest {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  categoryId String   @map("category_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@index([userId])
+  @@map("user_interests")
 }
 
 // ==========================================

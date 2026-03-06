@@ -248,6 +248,61 @@ export class BooksRepository {
     });
   }
 
+  async findPersonalizedRecommended(userId: string, limit = 10) {
+    // Tier 1: Categories from user's purchases, favorites, and reviews
+    const behavioralCategories = await prisma.bookCategory.findMany({
+      where: {
+        book: {
+          OR: [
+            { purchases: { some: { userId, status: 'COMPLETED' } } },
+            { favorites: { some: { userId } } },
+            { reviews: { some: { userId } } },
+          ],
+        },
+      },
+      select: { categoryId: true },
+      distinct: ['categoryId'],
+    });
+
+    let categoryIds = behavioralCategories.map((bc) => bc.categoryId);
+
+    // Tier 2: If no behavioral data, use onboarding interests
+    if (categoryIds.length === 0) {
+      const interests = await prisma.userInterest.findMany({
+        where: { userId },
+        select: { categoryId: true },
+      });
+      categoryIds = interests.map((i) => i.categoryId);
+    }
+
+    // Tier 3: If still nothing, fall back to global top-rated
+    if (categoryIds.length === 0) {
+      return this.findRecommended(limit);
+    }
+
+    // Exclude already purchased books
+    const purchasedBooks = await prisma.purchase.findMany({
+      where: { userId, status: 'COMPLETED' },
+      select: { bookId: true },
+    });
+    const excludeIds = purchasedBooks.map((p) => p.bookId);
+
+    const where: any = {
+      status: 'PUBLISHED',
+      categories: { some: { categoryId: { in: categoryIds } } },
+    };
+    if (excludeIds.length > 0) {
+      where.id = { notIn: excludeIds };
+    }
+
+    return prisma.book.findMany({
+      where,
+      take: limit,
+      orderBy: [{ rating: 'desc' }, { purchases: { _count: 'desc' } }],
+      include: this.publishedBookInclude,
+    });
+  }
+
   async countCategories(bookId: string) {
     return prisma.bookCategory.count({ where: { bookId } });
   }

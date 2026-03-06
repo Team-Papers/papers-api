@@ -55,7 +55,7 @@ export class BooksController {
   }
 
   async getRecommended(req: Request, res: Response) {
-    const books = await booksService.getRecommended();
+    const books = await booksService.getRecommended(req.user?.userId);
     sendSuccess(res, books);
   }
 
