@@ -35,12 +35,48 @@ export class PurchasesService {
     // Format phone number with country code if needed
     const phone = data.phoneNumber.startsWith('+') ? data.phoneNumber : `+237${data.phoneNumber}`;
 
+    const bookPrice = Number(book.price);
+
+    // Free book: complete purchase immediately without payment
+    if (bookPrice === 0) {
+      const purchase = await prisma.purchase.create({
+        data: {
+          userId,
+          bookId: data.bookId,
+          amount: 0,
+          paymentMethod: data.paymentMethod,
+          phoneNumber: phone,
+          status: 'PENDING',
+        },
+        include: {
+          book: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              coverUrl: true,
+              price: true,
+              authorId: true,
+              author: { select: { userId: true } },
+            },
+          },
+        },
+      });
+
+      await this.completePurchase(purchase);
+
+      return {
+        ...purchase,
+        status: 'COMPLETED' as const,
+      };
+    }
+
     // Create purchase in PENDING state
     const purchase = await prisma.purchase.create({
       data: {
         userId,
         bookId: data.bookId,
-        amount: Number(book.price),
+        amount: bookPrice,
         paymentMethod: data.paymentMethod,
         phoneNumber: phone,
         status: 'PENDING',
