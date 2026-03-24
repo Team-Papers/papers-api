@@ -18,6 +18,7 @@ export class LibraryRepository {
               id: true,
               title: true,
               slug: true,
+              description: true,
               coverUrl: true,
               pageCount: true,
               author: {

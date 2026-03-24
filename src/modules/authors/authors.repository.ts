@@ -40,6 +40,7 @@ export class AuthorsRepository {
             id: true,
             title: true,
             slug: true,
+            description: true,
             coverUrl: true,
             price: true,
             publishedAt: true,
