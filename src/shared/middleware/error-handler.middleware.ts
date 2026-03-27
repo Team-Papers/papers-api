@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '../../generated/prisma/client';
 import { AppError } from '../errors/app-error';
+import { Sentry } from '../../config/sentry';
 
 export const errorHandler = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof AppError) {
@@ -50,6 +51,7 @@ export const errorHandler = (err: Error, _req: Request, res: Response, _next: Ne
   }
 
   console.error('Unhandled error:', err);
+  Sentry.captureException(err);
 
   res.status(500).json({
     success: false,

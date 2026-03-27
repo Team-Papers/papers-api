@@ -39,6 +39,9 @@ const envSchema = z.object({
   WECHANGO_API_KEY: z.string().default(''),
   WECHANGO_BASE_URL: z.string().default('https://api.wechango.seed-innov.com/api/v1'),
   WECHANGO_WEBHOOK_SECRET: z.string().default(''),
+
+  // Sentry
+  SENTRY_DSN: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

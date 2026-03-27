@@ -4,6 +4,9 @@ import {
   type NotificationQueryDto,
   type CreateNotificationData,
 } from './notifications.dto';
+import { sendPushNotification } from '../../shared/services/push.service';
+import { sendAuthorApprovedEmail, sendNewSaleEmail } from '../../shared/services/email.service';
+import prisma from '../../config/database';
 
 export class NotificationsService {
   private notificationsRepository: NotificationsRepository;
@@ -38,13 +41,20 @@ export class NotificationsService {
 
   // Helper methods for creating specific notification types
   async notifyBookApproved(userId: string, bookTitle: string, bookId: string) {
-    return this.notificationsRepository.create({
+    const notification = await this.notificationsRepository.create({
       userId,
       type: NotificationType.BOOK_APPROVED,
       title: 'Livre approuvé',
       message: `Votre livre "${bookTitle}" a été approuvé et est maintenant publié.`,
       data: { bookId },
     });
+    await sendPushNotification(
+      userId,
+      'Livre approuvé',
+      `Votre livre "${bookTitle}" a été approuvé et est maintenant publié.`,
+      { bookId },
+    );
+    return notification;
   }
 
   async notifyBookRejected(userId: string, bookTitle: string, bookId: string, reason: string) {
@@ -84,13 +94,29 @@ export class NotificationsService {
   }
 
   async notifyAuthorApproved(userId: string) {
-    return this.notificationsRepository.create({
+    const notification = await this.notificationsRepository.create({
       userId,
       type: NotificationType.AUTHOR_APPROVED,
       title: 'Profil auteur approuvé',
       message:
         'Votre demande de profil auteur a été approuvée. Vous pouvez maintenant publier des livres.',
     });
+    await sendPushNotification(
+      userId,
+      'Demande approuvée',
+      'Votre demande de profil auteur a été approuvée. Vous pouvez maintenant publier des livres.',
+    );
+
+    // Send email notification
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, authorProfile: { select: { penName: true } } },
+    });
+    if (user?.email) {
+      await sendAuthorApprovedEmail(user.email, user.authorProfile?.penName || 'Auteur');
+    }
+
+    return notification;
   }
 
   async notifyAuthorRejected(userId: string, reason?: string) {
@@ -105,23 +131,47 @@ export class NotificationsService {
   }
 
   async notifyNewSale(authorUserId: string, bookTitle: string, bookId: string, amount: number) {
-    return this.notificationsRepository.create({
+    const notification = await this.notificationsRepository.create({
       userId: authorUserId,
       type: NotificationType.NEW_SALE,
       title: 'Nouvelle vente',
       message: `"${bookTitle}" a été acheté pour ${amount.toLocaleString('fr-FR')} FCFA.`,
       data: { bookId, amount },
     });
+    await sendPushNotification(
+      authorUserId,
+      'Nouvelle vente !',
+      `"${bookTitle}" a été acheté pour ${amount.toLocaleString('fr-FR')} FCFA.`,
+      { bookId },
+    );
+
+    // Send email notification
+    const user = await prisma.user.findUnique({
+      where: { id: authorUserId },
+      select: { email: true },
+    });
+    if (user?.email) {
+      await sendNewSaleEmail(user.email, bookTitle, amount);
+    }
+
+    return notification;
   }
 
   async notifyPurchaseComplete(userId: string, bookTitle: string, bookId: string) {
-    return this.notificationsRepository.create({
+    const notification = await this.notificationsRepository.create({
       userId,
       type: NotificationType.BOOK_PURCHASED,
       title: 'Achat confirmé',
       message: `Votre achat de "${bookTitle}" est confirmé. Le livre est disponible dans votre bibliothèque.`,
       data: { bookId },
     });
+    await sendPushNotification(
+      userId,
+      'Achat confirmé',
+      `Votre achat de "${bookTitle}" est confirmé. Le livre est disponible dans votre bibliothèque.`,
+      { bookId },
+    );
+    return notification;
   }
 
   async notifyNewReview(authorUserId: string, bookTitle: string, bookId: string, rating: number) {

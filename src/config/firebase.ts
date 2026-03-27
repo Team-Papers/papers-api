@@ -19,5 +19,6 @@ if (isFirebaseConfigured && !admin.apps.length) {
 // Export null if Firebase is not configured
 export const firebaseAuth = isFirebaseConfigured ? admin.auth() : null;
 export const firebaseStorage = isFirebaseConfigured ? admin.storage().bucket() : null;
+export const firebaseMessaging = isFirebaseConfigured ? admin.messaging() : null;
 export { isFirebaseConfigured };
 export default admin;

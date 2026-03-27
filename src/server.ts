@@ -1,7 +1,10 @@
 import { env } from './config/env';
+import { initSentry } from './config/sentry';
 import app from './app';
 import prisma from './config/database';
 import { initializeStorage } from './config/storage';
+
+initSentry();
 
 const start = async () => {
   try {

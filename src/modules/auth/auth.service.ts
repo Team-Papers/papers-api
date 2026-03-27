@@ -6,6 +6,7 @@ import { firebaseAuth, isFirebaseConfigured } from '../../config/firebase';
 import redis from '../../config/redis';
 import { AuthRepository } from './auth.repository';
 import { JwtPayload } from '../../shared/middleware/auth.middleware';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../../shared/services/email.service';
 import {
   BadRequestError,
   ConflictError,
@@ -47,6 +48,7 @@ export class AuthService {
     await redis.setex(`verify:${verificationToken}`, 24 * 60 * 60, user.id);
 
     // TODO: Send verification email (Sprint 1 - Email Service)
+    await sendVerificationEmail(user.email, verificationToken);
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
@@ -192,6 +194,7 @@ export class AuthService {
     await redis.setex(`reset:${resetToken}`, 60 * 60, user.id);
 
     // TODO: Send reset password email
+    await sendPasswordResetEmail(user.email, resetToken);
   }
 
   async resetPassword(data: ResetPasswordDto) {
