@@ -22,6 +22,7 @@ model User {
   role          Role      @default(READER)
   status        UserStatus @default(ACTIVE)
   emailVerified Boolean   @default(false) @map("email_verified")
+  fcmToken      String?   @map("fcm_token") @db.VarChar(500)
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
