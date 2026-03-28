@@ -46,4 +46,8 @@ export class UsersService {
   async syncInterests(userId: string, categoryIds: string[]) {
     return this.usersRepository.syncInterests(userId, categoryIds);
   }
+
+  async updateFcmToken(userId: string, fcmToken: string) {
+    return this.usersRepository.updateFcmToken(userId, fcmToken);
+  }
 }

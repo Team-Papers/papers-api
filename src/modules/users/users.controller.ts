@@ -28,4 +28,9 @@ export class UsersController {
     await usersService.syncInterests(req.user!.userId, req.body.categoryIds);
     sendSuccess(res, { message: 'Interests synced successfully' });
   }
+
+  async updateFcmToken(req: Request, res: Response) {
+    await usersService.updateFcmToken(req.user!.userId, req.body.fcmToken);
+    sendSuccess(res, { message: 'FCM token updated successfully' });
+  }
 }

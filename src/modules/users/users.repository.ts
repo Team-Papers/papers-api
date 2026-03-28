@@ -65,4 +65,11 @@ export class UsersRepository {
       select: { categoryId: true },
     });
   }
+
+  async updateFcmToken(userId: string, fcmToken: string) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { fcmToken },
+    });
+  }
 }

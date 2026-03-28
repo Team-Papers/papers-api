@@ -13,3 +13,9 @@ export const syncInterestsDto = z.object({
 });
 
 export type SyncInterestsDto = z.infer<typeof syncInterestsDto>;
+
+export const updateFcmTokenDto = z.object({
+  fcmToken: z.string().min(1).max(500),
+});
+
+export type UpdateFcmTokenDto = z.infer<typeof updateFcmTokenDto>;
