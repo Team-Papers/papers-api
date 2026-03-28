@@ -19,3 +19,14 @@ export const updateFcmTokenDto = z.object({
 });
 
 export type UpdateFcmTokenDto = z.infer<typeof updateFcmTokenDto>;
+
+export const updatePreferencesDto = z.object({
+  ageGroup: z.string().max(50).optional(),
+  country: z.string().max(100).optional(),
+  booksLastYear: z.string().max(50).optional(),
+  readingBarriers: z.array(z.string()).optional(),
+  papersHelp: z.string().max(100).optional(),
+  readingGoal: z.number().int().min(0).optional(),
+});
+
+export type UpdatePreferencesDto = z.infer<typeof updatePreferencesDto>;

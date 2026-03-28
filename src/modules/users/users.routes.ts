@@ -2,7 +2,12 @@ import { Router } from 'express';
 import { UsersController } from './users.controller';
 import { authenticate } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
-import { updateUserDto, syncInterestsDto, updateFcmTokenDto } from './users.dto';
+import {
+  updateUserDto,
+  syncInterestsDto,
+  updateFcmTokenDto,
+  updatePreferencesDto,
+} from './users.dto';
 
 const router = Router();
 const controller = new UsersController();
@@ -13,6 +18,10 @@ router.put('/me/interests', authenticate, validate(syncInterestsDto), (req, res,
 
 router.put('/me/fcm-token', authenticate, validate(updateFcmTokenDto), (req, res, next) => {
   controller.updateFcmToken(req, res).catch(next);
+});
+
+router.put('/me/preferences', authenticate, validate(updatePreferencesDto), (req, res, next) => {
+  controller.updatePreferences(req, res).catch(next);
 });
 
 router.get('/:id', (req, res, next) => {

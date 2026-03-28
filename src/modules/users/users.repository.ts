@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import type { UpdateUserDto } from './users.dto';
+import type { UpdateUserDto, UpdatePreferencesDto } from './users.dto';
 
 export class UsersRepository {
   async findById(id: string) {
@@ -70,6 +70,31 @@ export class UsersRepository {
     return prisma.user.update({
       where: { id: userId },
       data: { fcmToken },
+    });
+  }
+
+  async updatePreferences(userId: string, data: UpdatePreferencesDto) {
+    return prisma.user.update({
+      where: { id: userId },
+      data,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatarUrl: true,
+        role: true,
+        status: true,
+        emailVerified: true,
+        ageGroup: true,
+        country: true,
+        booksLastYear: true,
+        readingBarriers: true,
+        papersHelp: true,
+        readingGoal: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 }

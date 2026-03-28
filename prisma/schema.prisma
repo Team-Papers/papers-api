@@ -40,6 +40,13 @@ model User {
   articleComments ArticleComment[]
   interests       UserInterest[]
 
+  ageGroup       String?   @map("age_group") @db.VarChar(50)
+  country        String?   @db.VarChar(100)
+  booksLastYear  String?   @map("books_last_year") @db.VarChar(50)
+  readingBarriers String[]  @map("reading_barriers")
+  papersHelp     String?   @map("papers_help") @db.VarChar(100)
+  readingGoal    Int?      @map("reading_goal")
+
   @@map("users")
 }
 

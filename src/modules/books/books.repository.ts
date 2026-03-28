@@ -249,6 +249,17 @@ export class BooksRepository {
   }
 
   async findPersonalizedRecommended(userId: string, limit = 10) {
+    // Fetch user preferences for personalization
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        country: true,
+        ageGroup: true,
+        booksLastYear: true,
+        readingBarriers: true,
+      },
+    });
+
     // Tier 1: Categories from user's purchases, favorites, and reviews
     const behavioralCategories = await prisma.bookCategory.findMany({
       where: {
@@ -295,12 +306,55 @@ export class BooksRepository {
       where.id = { notIn: excludeIds };
     }
 
-    return prisma.book.findMany({
+    // Apply preference-based filters
+    if (user?.booksLastYear === '0-2') {
+      where.pageCount = { lt: 150 };
+    }
+
+    if (user?.readingBarriers?.includes('Prix')) {
+      where.price = { equals: 0 };
+    }
+
+    // Fetch more results to allow re-ranking by user preferences
+    const fetchLimit = user?.country ? limit * 2 : limit;
+
+    const books = await prisma.book.findMany({
       where,
-      take: limit,
+      take: fetchLimit,
       orderBy: [{ reviews: { _count: 'desc' } }, { purchases: { _count: 'desc' } }],
       include: this.publishedBookInclude,
     });
+
+    // Boost books matching user's country language
+    if (user?.country && books.length > limit) {
+      const countryLanguageMap: Record<string, string> = {
+        Cameroun: 'fr',
+        France: 'fr',
+        Senegal: 'fr',
+        "Côte d'Ivoire": 'fr',
+        Congo: 'fr',
+        Gabon: 'fr',
+        Nigeria: 'en',
+        Ghana: 'en',
+        'South Africa': 'en',
+        Kenya: 'en',
+        USA: 'en',
+        UK: 'en',
+        Canada: 'en',
+      };
+
+      const preferredLanguage = countryLanguageMap[user.country];
+      if (preferredLanguage) {
+        const boosted = books.sort((a: any, b: any) => {
+          const aMatch = a.language === preferredLanguage ? 1 : 0;
+          const bMatch = b.language === preferredLanguage ? 1 : 0;
+          return bMatch - aMatch;
+        });
+        return boosted.slice(0, limit);
+      }
+    }
+
+    return books.slice(0, limit);
   }
 
   async countCategories(bookId: string) {

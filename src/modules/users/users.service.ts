@@ -1,6 +1,6 @@
 import { UsersRepository } from './users.repository';
 import { NotFoundError, ForbiddenError } from '../../shared/errors/app-error';
-import type { UpdateUserDto } from './users.dto';
+import type { UpdateUserDto, UpdatePreferencesDto } from './users.dto';
 
 export class UsersService {
   private usersRepository: UsersRepository;
@@ -49,5 +49,9 @@ export class UsersService {
 
   async updateFcmToken(userId: string, fcmToken: string) {
     return this.usersRepository.updateFcmToken(userId, fcmToken);
+  }
+
+  async updatePreferences(userId: string, data: UpdatePreferencesDto) {
+    return this.usersRepository.updatePreferences(userId, data);
   }
 }

@@ -33,4 +33,9 @@ export class UsersController {
     await usersService.updateFcmToken(req.user!.userId, req.body.fcmToken);
     sendSuccess(res, { message: 'FCM token updated successfully' });
   }
+
+  async updatePreferences(req: Request, res: Response) {
+    const user = await usersService.updatePreferences(req.user!.userId, req.body);
+    sendSuccess(res, user);
+  }
 }
